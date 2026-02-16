@@ -1,0 +1,1 @@
+--incr --debug typical --relax --mt 2  -L xil_defaultlib -L secureip -L xpm --snapshot bram_ecg xil_defaultlib.bram_ecg -log elaborate.log

@@ -1,0 +1,12 @@
+
+{ 
+    crc :  1753961522565624941  , 
+    ccp_crc :  0  , 
+    cmdline : " --incr --debug typical --relax --mt 2 -L xil_defaultlib -L work -L secureip -L xpm --snapshot fullAdder12_tb_behav xil_defaultlib.fullAdder12_tb" , 
+    buildDate : "Nov  8 2024" , 
+    buildTime : "22:36:57" , 
+    linkCmd : "C:\\Apps\\Vivado\\2024.2\\data\\..\\tps\\mingw\\6.2.0\\win64.o\\nt\\bin\\gcc.exe -Wa,-W  -O -Wl,--stack,104857600 -o \"xsim.dir/fullAdder12_tb_behav/xsimk.exe\"   \"xsim.dir/fullAdder12_tb_behav/obj/xsim_0.win64.obj\" \"xsim.dir/fullAdder12_tb_behav/obj/xsim_1.win64.obj\" -L\"C:\\Apps\\Vivado\\2024.2\\lib\\win64.o\" -lxv_simulator_kernel   -lxv_simbridge_kernel" , 
+    aggregate_nets : 
+    [ 
+    ] 
+} 

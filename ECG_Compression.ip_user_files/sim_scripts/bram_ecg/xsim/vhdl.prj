@@ -1,0 +1,5 @@
+vhdl xil_defaultlib  \
+"../../../../ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg_sim_netlist.vhdl" \
+
+# Do not sort compile order
+nosort

@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "work" -L "secureip" -L "xpm" --snapshot "parameterKEstimator_tb_behav" "xil_defaultlib.parameterKEstimator_tb" -log "elaborate.log" 

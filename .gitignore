@@ -1,0 +1,31 @@
+# Ignore Vivado project files and generated outputs
+*.jou
+*.log
+*.str
+*.zip
+*.xml
+*.html
+*.xpr
+*.xsa
+*.xpe
+*.rpt
+*.pb
+*.wdb
+*.dcp
+*.bit
+*.bin
+*.svf
+*.vcd
+
+# Vivado generated directories
+.cache/
+.hw/
+.ip_user_files/
+.runs/
+.sim/
+.gen/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

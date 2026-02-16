@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "work" -L "secureip" -L "xpm" --snapshot "bram_test_tb2_behav" "xil_defaultlib.bram_test_tb2" -log "elaborate.log" 

@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "work" -L "secureip" -L "xpm" --snapshot "fullAdder12_tb_behav" "xil_defaultlib.fullAdder12_tb" -log "elaborate.log" 
