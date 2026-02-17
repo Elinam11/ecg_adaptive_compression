@@ -38,7 +38,9 @@ entity golombRice is
     Port (Sample: in STD_LOGIC;
           --Buffer2: in b16array3;
           encodedE: out unsigned(15 downto 0);
-          q_r: out STD_LOGIC_VECTOR(15 downto 0);
+          total_bits : out integer;
+          samples_done : out integer;
+          compression_done: out std_logic;
           Clk: in std_logic);
 end golombRice;
 
@@ -91,6 +93,10 @@ architecture Behavioral of golombRice is
     signal addra_1: STD_LOGIC_VECTOR (16 downto 0):=(others => '0');
     signal  E: std_logic:= '0';
     
+    -- compression tracking
+    signal total_bits_reg: integer := 0;
+    signal samples_done_reg : integer := 0;
+    signal comp_done : std_logic := '0';
     
     -- BRAM signals B
     signal  dinb_1, doutb_1 : std_logic_vector (15 downto 0);
@@ -106,7 +112,7 @@ architecture Behavioral of golombRice is
     
     -- golomb 
     signal Q , R,  M_n0: std_logic_vector (15 downto 0);
-    signal  M_n : signed(15 downto 0);
+    signal  M_n : unsigned(15 downto 0);
     signal  M_n_pos : unsigned(15 downto 0);
     signal pa_K : integer range 0 to 15  :=0;
     
@@ -115,7 +121,7 @@ architecture Behavioral of golombRice is
     signal M_n1 : unsigned(31 downto 0); 
     
     -- state machine for compression
-    type state_type is (IDLE, READY, COMPUTE, ENCODE, DONE);
+    type state_type is (IDLE, READY, ENCODE, DONE);
     signal state: state_type := IDLE;
     
     -- address counter for iterating through BRAM
@@ -148,15 +154,19 @@ begin
                              K=> paramK);
                    
                                     
-    Positive_num: mappingToUnsigned port map( A => M_n,
-                                              Z => M_n_pos);
+    
                                     
-                                                       
+    total_bits <= total_bits_reg;
+    samples_done <= samples_done_reg;
+    compression_done <= comp_done;
+                                                
     process(Clk)
     -- initialize counter variable 
         variable Counter_var : integer := 0; 
         variable read_addr : unsigned(16 downto 0)  := (others => '0');
         variable cycle_count : integer range  0 to 1100 := 0;
+        variable bits_used : integer:= 0;
+        variable pa_K : integer range 0 to 15  :=0;
         
         begin 
         
@@ -171,7 +181,10 @@ begin
                      Counter <= Counter_var; 
                      read_addr := (others => '0');
                      cycle_count := 0;
-                     
+                     total_bits_reg <= 0;
+                     samples_done_reg  <= 0;
+                     comp_done  <= '0';
+    
                      if k_valid = '1' then 
                         state <= READY;
                      END IF;
@@ -186,34 +199,12 @@ begin
                 end if;
                 
                 if cycle_count >= 2 and cycle_count < 1026 then
-                       temp_buffer(0) <= temp_buffer(1) ;
-                       temp_buffer(1) <= temp_buffer(2);
-                       temp_buffer(2) <= douta_1;
-
+                       M_n <= unsigned(douta_1);
+                       state <= ENCODE;
                        
                 END IF;
-    
-                if cycle_count >= 4 then
-                    state <= COMPUTE;
-                end if;
                 
-           when COMPUTE =>
-                 
-                 -- Linear 2nd Order Predictor       
-                    -- pass into predictor
-                    sampleShifted <= shift_left(signed(temp_buffer(2)),1);
-                    predictedO <= sampleShifted - signed(temp_buffer(1));
-                    -- calculate error from predicted and current
-                    M_n <= signed(temp_buffer(0)) - predictedO;
-                    
-                    -- map to unsigned
-                    -- write back to memory 
-                    E_b <= '0'; -- bram not enable
-                    addrb_1 <= std_logic_vector(unsigned(addra_1) - "00000000000000100");
-                    web_1 <= "1";
-                    dinb_1 <= std_logic_vector(M_n_pos);
-                    -- done pointer for first k calculation
-                    state <= ENCODE;
+               
                     
           when ENCODE =>
       
@@ -221,17 +212,22 @@ begin
              -- take k
                      
                 -- find q and r 
-                pa_K <= paramK;        
-                Q <=  std_logic_vector(shift_right(M_n_pos , pa_K));
-                
-                M_n0 <= std_logic_vector(M_n_pos);
+                pa_K := paramK;        
+                Q <=  std_logic_vector(shift_right(M_n , pa_K));
+                M_n0 <= std_logic_vector(M_n);
                 -- mask lower bits
-                R <= std_logic_vector(M_n_pos and (to_unsigned(2**pa_K -1 ,16)));
+                R <= std_logic_vector(M_n and shift_right(unsigned(not(std_logic_vector(to_unsigned(0,16)))) , 16 - pa_K)) ;
                 
                 -- output error
-                M_n1 <= shift_left(resize(M_n_pos,32 ), pa_K + 1);
-                encodedE <= unsigned(R) + M_n1(15 downto 0);
                 
+                encodedE <= shift_left(resize(M_n,32 ), pa_K + 1)(15 downto pa_K + 1) & to_unsigned(0,1) & unsigned(R(pa_K - 1 downto 0));
+                
+                -- compression measurement
+                bits_used := to_integer(unsigned(Q)) + 1 + pa_K;
+                total_bits_reg <= total_bits_reg + bits_used;
+                samples_done_reg <= samples_done_reg + 1;
+    
+
                 -- store error
         
                 -- put in function to say unless 123
@@ -242,12 +238,13 @@ begin
                     state <= DONE;
                 else
                     Counter_var := Counter_var + 1;
+                    state <= READY;
                 end if;
                 
         when DONE =>
             -- Final state after processing all 1024 samples
             E <= '0';
-            
+            comp_done <= '1';
             state <= IDLE;  -- Return to IDLE to wait for next k_valid
         
         

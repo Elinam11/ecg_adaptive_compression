@@ -56,6 +56,12 @@ architecture Behavioral of kEstimator is
       );
     END COMPONENT bram_ecg;
 
+    
+    component mappingToUnsigned is
+        Port ( A : in signed (15 downto 0);
+               Z : out unsigned (15 downto 0));
+    end component mappingToUnsigned;
+    
 -- function to get log2 value
 
 function first_one (vec: std_logic_vector)  return integer is
@@ -83,19 +89,18 @@ signal  E_b: std_logic:= '0';
 -- internal computation
 signal K_reg: integer range 0  to 15 := 0;
 signal avg: unsigned (25 downto 0):=(others => '0');
-
---prediction error
+signal predictedO : signed(15 downto 0);
+ signal sampleShifted: signed(15 downto 0) ;
+signal  M_n_pos : unsigned(15 downto 0);
 signal  M_n : signed(15 downto 0);
-signal sampleShifted: signed(15 downto 0) ;
-signal  predictionErr: signed(15 downto 0);
+    
+-- for storing past 2 samples
+type b16array3 is array(2 downto 0) of std_logic_vector(15 downto 0);
+signal temp_buffer:  b16array3;
 
 -- state machine for k estimation
-type state_type is (IDLE, READY, ACCUMULATE, AVERAGE , COMPUTE, DONE);
+type state_type is (IDLE, READY, ACCUMULATE, COMPUTE, DONE);
 signal state: state_type := IDLE;
-
--- for storing past 2 samples
-    type b16array3 is array(2 downto 0) of std_logic_vector(15 downto 0);
-    signal temp_buffer:  b16array3;
 
 -- address counter for iterating through BRAM
 signal addr_count: unsigned (16 downto 0):=(others => '0');
@@ -113,13 +118,23 @@ begin
                         addrb => addrb_1,
                         dinb => dinb_1,
                         doutb => doutb_1);
+     Positive_num: mappingToUnsigned port map( A => M_n,
+                                              Z => M_n_pos);
+                                              
      K <= K_reg;
      
      process(Clock)
         variable sum_abs_errors : unsigned(25 downto 0) := (others => '0');
         variable abs_error : unsigned(15 downto 0);
         variable read_addr : unsigned(16 downto 0)  := (others => '0');
+        variable write_addr : unsigned(16 downto 0)  := (others => '0');
         variable cycle_count : integer range  0 to 1100 := 0;
+        variable v_sampleShifted: signed(15 downto 0);
+        variable v_predictedO: signed(15 downto 0);
+        variable v_M_n: signed(15 downto 0);
+        variable v_M_n_pos: unsigned(15 downto 0);
+        variable M_n_interim : signed(16 downto 0);
+        variable Z_interim : unsigned(16 downto 0);
         
         begin
         
@@ -128,8 +143,12 @@ begin
                  when IDLE =>
                      E <= '0'; -- bram not enable
                      E_b <= '0';
+                     web_1 <= "0";
                      K_ready <= '0';
+                     temp_buffer <= (others =>(others => '0')) ;
+                     dinb_1 <= (others => '0');
                      read_addr := (others => '0');
+                     write_addr := (others => '0');
                      cycle_count:= 0;
                      sum_abs_errors := (others => '0');
                      
@@ -137,77 +156,96 @@ begin
                         state <= READY;
                      end if;
                  
-                when READY =>
+                 when READY =>
                     E <= '1'; -- read enable
-                    cycle_count := cycle_count + 1;    
+                    E_b <= '0';
+                    web_1 <= "0";
+                    K_ready <= '0';
+                    
                     addra_1 <= std_logic_vector(read_addr);
                     
                     if read_addr < 1023 then
                         read_addr:= read_addr + 1;
                     end if;
                     
-                    if cycle_count >= 2 and cycle_count < 1026 then
-                        temp_buffer(0) <= temp_buffer(1) ;
-                        temp_buffer(1) <= temp_buffer(2);
-                        temp_buffer(2) <= douta_1;
+                    cycle_count := cycle_count + 1;    
 
-                        
-                    END IF;
-        
                     if cycle_count >= 4 then
                         state <= COMPUTE;
                     end if;
                 
                 when COMPUTE =>
-                        
-                        -- Linear 2nd Order Predictor       
-                            -- pass into predictor
-                            sampleShifted <= shift_left(signed(temp_buffer(2)),1);
-                            predictedO <= sampleShifted - signed(temp_buffer(1));
-                            -- calculate error from predicted and current
-                            M_n <= signed(temp_buffer(0)) - predictedO;
-                            
-                            -- map to unsigned
-                            -- write back to memory 
-                            E_b <= '1'; -- bram not enable
-                            web_1 <= "1";
-                            addrb_1 <= std_logic_vector(unsigned(addra_1) - "00000000000000100");
-                            dinb_1 <= std_logic_vector(M_n_pos);
-                            -- done pointer for first k calculation
-                            state <= ACCUMULATE;
-                            
+                
+                cycle_count := cycle_count + 1; 
+                
+                E <= '1';
+                addra_1 <= std_logic_vector(read_addr);
                     
-    
-                 when ACCUMULATE =>
-                     E <= '1';
-                     K_ready <= '0';
-                     
-                     addra_1 <= std_logic_vector(read_addr);
-                     
-                     if cycle_count >= 2 and cycle_count < 1026 then
-                     -- mapping signed to unsigned
-                        if signed(douta_1)< 0 then
-                            abs_error:= unsigned(-signed(douta_1));
-                        else
-                            abs_error := unsigned(douta_1);
-                        end if;
-                        
-                        sum_abs_errors := sum_abs_errors + abs_error;
-                        end if;
-                        
-                      --increment address 
-                      if read_addr < 1023 then  
-                            read_addr := read_addr + 1;
-                        
-                      end if;
+                if read_addr < 1023 then
+                    read_addr:= read_addr + 1;
+                end if;
+                    
+                if cycle_count >= 2 and cycle_count < 1026 then
+                    temp_buffer(0) <= temp_buffer(1) ;
+                    temp_buffer(1) <= temp_buffer(2);
+                    temp_buffer(2) <= douta_1;
+               
+                END IF;      
+                -- Linear 2nd Order Predictor       
+                    -- pass into predictor
+                    v_sampleShifted := shift_left(signed(temp_buffer(2)),1);
+                    v_predictedO := v_sampleShifted - signed(temp_buffer(1));
+                    -- calculate error from predicted and current
+                    v_M_n := signed(temp_buffer(0)) - v_predictedO;
+                    
+                    
+                    -- map to unsigned
+                    M_n_interim := resize(v_M_n,17);
+                    if (M_n_interim  >= 0) then
+                        Z_interim := unsigned(shift_left(M_n_interim,1)); -- positive no
+                    
+                    else  
+                        Z_interim := unsigned(shift_left(-M_n_interim,1)-1);  -- neg no
+                    
+                    end if;
+                
+                    v_M_n_pos := resize(Z_interim,16);
+
+
+                    sampleShifted <= v_sampleShifted;
+                    predictedO <= v_predictedO;
+                    M_n <= v_M_n;
+                    M_n_pos <= v_M_n_pos;
+                    
+                    -- write back to memory 
+                    E_b <= '1'; -- bram not enable
+                    web_1 <= "1";
+                    addrb_1 <= std_logic_vector(write_addr);
+                    if cycle_count >= 5 then
+                        dinb_1 <= std_logic_vector(v_M_n_pos);
+                    end if;
+                    
+                    if write_addr < 1023 then
+                        write_addr:= write_addr + 1;
+                    end if;
+                    
+                    
+                    -- done pointer for first k calculation
+                    if cycle_count > 5 then
+                        sum_abs_errors := sum_abs_errors + v_M_n_pos;
+                    end if;
+
+                    if cycle_count >= 1026 then  
+                        state <= ACCUMULATE;            
+                    end if;
+                            
+                            
+                                         
                       
-                      cycle_count := cycle_count + 1;
-                      
-                      if cycle_count >= 1026 then  
-                            state <= COMPUTE;             
-                      end if;
-                      
-                  when AVERAGE =>
+                  when ACCUMULATE =>
+                  
+                    E_b <= '0';
+                    web_1 <= "0";
                     K_ready <= '0';
                     E <='0';      
                     -- rake average

@@ -49,7 +49,7 @@ begin
         variable A_interim: signed(16 downto 0);
         variable Z_interim: unsigned(16 downto 0);
     begin
-         A_interim := resize(A,17);
+        A_interim := resize(A,17);
         if (A_interim  >= 0) then
             Z_interim := unsigned(shift_left(A_interim,1)); -- positive no
         
