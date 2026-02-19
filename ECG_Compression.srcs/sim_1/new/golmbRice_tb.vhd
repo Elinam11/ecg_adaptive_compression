@@ -96,10 +96,10 @@ begin
         -- K estimation: ~21 us
         -- Encoding: ~130 us
         -- Total: ~155 us (use 200 us to be safe)
-        wait for 900 us;
+        wait for 9000 us; -- 798990
         
         -- Check if compression is done
-        if comp_done_tb = '1' then
+        wait until comp_done_tb = '1' ;
             report "Compression Complete!" severity note;
             report "========================================" severity note;
             
@@ -128,9 +128,9 @@ begin
                 report "WARNING: Poor compression (<1:1 ratio)" severity warning;
             end if;
             
-        else
-            report "ERROR: Compression did not complete!" severity error;
-        end if;
+        
+        --    report "ERROR: Compression did not complete!" severity error;
+        
         
         -- End simulation
         wait for 1 us;

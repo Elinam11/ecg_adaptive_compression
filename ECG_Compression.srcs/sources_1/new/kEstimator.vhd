@@ -35,7 +35,10 @@ entity kEstimator is
   Port ( Counter: in integer;
          Clock: in std_logic; 
          K_ready: out std_logic; 
-         K: out integer range 0  to 15);
+         K: out integer range 0  to 15;
+         bram_addr_in : in STD_LOGIC_VECTOR(16 downto 0);
+         bram_data_out : out STD_LOGIC_VECTOR(15 downto 0);
+         bram_ena_in : in std_logic);
 end kEstimator;
 
 architecture Behavioral of kEstimator is
@@ -180,12 +183,21 @@ begin
                 
                 E <= '1';
                 addra_1 <= std_logic_vector(read_addr);
-                    
+                
+
                 if read_addr < 1023 then
+                
                     read_addr:= read_addr + 1;
                 end if;
-                    
-                if cycle_count >= 2 and cycle_count < 1026 then
+                 
+                if cycle_count >= 5 and write_addr < 15 then
+                    report "WRITE: addr=" & integer'image(to_integer(write_addr)) & 
+                           " data=" & integer'image(to_integer(v_M_n_pos)) &
+                           " E_b=" & std_logic'image(E_b) &
+                           " web=" & std_logic'image(web_1(0)) severity note;
+                end if;
+                  
+                if cycle_count >= 4 and cycle_count < 1028 then
                     temp_buffer(0) <= temp_buffer(1) ;
                     temp_buffer(1) <= temp_buffer(2);
                     temp_buffer(2) <= douta_1;
@@ -211,31 +223,40 @@ begin
                 
                     v_M_n_pos := resize(Z_interim,16);
 
-
+                    -- for debug
                     sampleShifted <= v_sampleShifted;
                     predictedO <= v_predictedO;
                     M_n <= v_M_n;
                     M_n_pos <= v_M_n_pos;
                     
-                    -- write back to memory 
-                    E_b <= '1'; -- bram not enable
-                    web_1 <= "1";
-                    addrb_1 <= std_logic_vector(write_addr);
+                    
+                    
                     if cycle_count >= 5 then
-                        dinb_1 <= std_logic_vector(v_M_n_pos);
-                    end if;
+                        -- write back to memory 
+                        E <= '1'; -- bram not enable
+                        wea_1 <= "1";
+                       
+                        addra_1 <= std_logic_vector(write_addr);
+                        dina_1 <= std_logic_vector(v_M_n_pos);
                     
-                    if write_addr < 1023 then
-                        write_addr:= write_addr + 1;
-                    end if;
+                        -- done pointer for first k calculation
                     
-                    
-                    -- done pointer for first k calculation
-                    if cycle_count > 5 then
                         sum_abs_errors := sum_abs_errors + v_M_n_pos;
+                        
+                        if write_addr < 1023 then 
+                            write_addr := write_addr + 1;
+                        end if;
+            
+                    else 
+                        E <= '1'; -- bram not enable
+                        wea_1 <= "0";
+                        
                     end if;
+                    
+                    
+                    
 
-                    if cycle_count >= 1026 then  
+                    if cycle_count >= 1030 then  
                         state <= ACCUMULATE;            
                     end if;
                             
@@ -247,14 +268,28 @@ begin
                     E_b <= '0';
                     web_1 <= "0";
                     K_ready <= '0';
-                    E <='0';      
+                    E <='0';  
+                    
+                    cycle_count := cycle_count + 1;    
                     -- rake average
-                    avg <= shift_right(sum_abs_errors, 10);
-                    state <= DONE;
+                    if cycle_count >= 1055 then
+                        avg <= shift_right(sum_abs_errors, 10);
+                        state <= DONE;
+                    end if;
                     
                   when DONE =>
                     K_ready <= '1';
                     K_reg <= first_one(std_logic_vector(avg));
+                    
+                    -- allow external access
+                    if bram_ena_in = '1' then
+                        addra_1 <= bram_addr_in;
+                        E <= '1';
+                        wea_1 <= "0";
+                        bram_data_out <= douta_1;
+                     else
+                        E<= '0';
+                    end if;
                     
                     if Counter /= 0 then
                         state <= IDLE;

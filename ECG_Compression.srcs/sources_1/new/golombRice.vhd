@@ -73,7 +73,10 @@ architecture Behavioral of golombRice is
       Port ( Counter: in integer;
              Clock: in std_logic; 
              K_ready: out std_logic;
-             K: out integer range 0  to 15);
+             K: out integer range 0  to 15;
+             bram_addr_in : in STD_LOGIC_VECTOR(16 downto 0);
+             bram_data_out : out STD_LOGIC_VECTOR(15 downto 0);
+             bram_ena_in : in std_logic);
     end component kEstimator;
 
     
@@ -134,24 +137,15 @@ architecture Behavioral of golombRice is
     
 begin
 
-    ram: bram_ecg port map(clka=>Clk,
-                        wea => wea_1,
-                        ena => E,
-                        addra => addra_1,
-                        dina => dina_1,
-                        douta => douta_1,
-                        clkb => Clk,
-                        enb => E_b,
-                        web => web_1,
-                        addrb => addrb_1,
-                        dinb => dinb_1,
-                        doutb => doutb_1);
-                        
+   
     
     KE: kEstimator port map( Counter => Counter,
                              K_ready => k_valid,
                              Clock => Clk, 
-                             K=> paramK);
+                             K=> paramK,
+                             bram_addr_in =>addra_1,
+                             bram_data_out => douta_1,
+                             bram_ena_in => E);
                    
                                     
     
@@ -175,7 +169,7 @@ begin
         case state is 
             when IDLE =>
                      E <= '0'; -- bram not enable
-                     E_b <= '0'; -- bram not enable
+                     
                      wea_1 <= "0";
                      Counter_var := 0; -- request for the  k
                      Counter <= Counter_var; 
@@ -183,10 +177,12 @@ begin
                      cycle_count := 0;
                      total_bits_reg <= 0;
                      samples_done_reg  <= 0;
-                     comp_done  <= '0';
+                     
     
                      if k_valid = '1' then 
+                        comp_done  <= '0';
                         state <= READY;
+
                      END IF;
                      
              when READY =>
@@ -197,7 +193,10 @@ begin
                 if read_addr < 1023 then
                     read_addr:= read_addr + 1;
                 end if;
-                
+                if cycle_count >= 2 and cycle_count < 7 then
+                    report "READ: addr=" & integer'image(to_integer(read_addr) - 1) & 
+                           " data=" & integer'image(to_integer(unsigned(douta_1))) severity note;
+                end if;
                 if cycle_count >= 2 and cycle_count < 1026 then
                        M_n <= unsigned(douta_1);
                        state <= ENCODE;
@@ -222,6 +221,15 @@ begin
                 
                 encodedE <= shift_left(resize(M_n,32 ), pa_K + 1)(15 downto pa_K + 1) & to_unsigned(0,1) & unsigned(R(pa_K - 1 downto 0));
                 
+                
+                -- DEBUG: Report what you're encoding
+                if cycle_count <= 10 then  -- First 10 samples only
+                    report "Sample " & integer'image(samples_done_reg) & 
+                           ": M_n=" & integer'image(to_integer(M_n)) & 
+                           " Q=" & integer'image(to_integer(unsigned(Q))) & 
+                           " bits=" & integer'image(bits_used) severity note;
+                end if;
+    
                 -- compression measurement
                 bits_used := to_integer(unsigned(Q)) + 1 + pa_K;
                 total_bits_reg <= total_bits_reg + bits_used;
@@ -231,10 +239,11 @@ begin
                 -- store error
         
                 -- put in function to say unless 123
-                if Counter_var = 1023 then
+                if cycle_count = 1025 then
                     -- send in next k function by seting counter in component
-                    Counter_var := 0 ;
+                    
                     Counter <= Counter_var;
+                    Counter_var := 0 ;
                     state <= DONE;
                 else
                     Counter_var := Counter_var + 1;
@@ -245,7 +254,7 @@ begin
             -- Final state after processing all 1024 samples
             E <= '0';
             comp_done <= '1';
-            state <= IDLE;  -- Return to IDLE to wait for next k_valid
+            -- state <= IDLE;  -- Return to IDLE to wait for next k_valid
         
         
     end case;
