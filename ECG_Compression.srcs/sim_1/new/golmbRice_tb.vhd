@@ -20,6 +20,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use std.textio.all;
 
 entity golmbRice_tb is
 end golmbRice_tb;
@@ -91,12 +92,12 @@ begin
         
         -- Wait for system to stabilize
         wait for 100 ns;
-        
+         
         -- Wait for K estimation + encoding to complete
         -- K estimation: ~21 us
         -- Encoding: ~130 us
         -- Total: ~155 us (use 200 us to be safe)
-        wait for 9000 us; -- 798990
+        wait for 5000 us; -- 798990
         
         -- Check if compression is done
         wait until comp_done_tb = '1' ;
@@ -143,6 +144,7 @@ begin
     progress_monitor: process(Clock_tb)
         variable last_sample_count : integer := 0;
     begin
+        
         if rising_edge(Clock_tb) then
             if samples_done_tb /= last_sample_count then
                 last_sample_count := samples_done_tb;
@@ -157,4 +159,88 @@ begin
         end if;
     end process;
 
+    process 
+        file expected_file: text open read_mode is "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.sim/sim_1/behav/xsim/compressed_output.txt";
+    variable expected_line : line;
+    variable expected_val : integer;
+    variable char: character;
+    variable mismatches: integer := 0;
+    variable good_read : boolean;
+begin
+    report "Comparison process started, waiting for encoding to begin..." severity note;
+    
+    wait until samples_done_tb > 0;
+    report "Encoding has started" severity note;
+    
+    wait for 100 ns;
+    
+    report "========================================" severity note;
+    report "Starting Python vs VHDL comparison..." severity note;
+    report "========================================" severity note;
+    
+    -- Read the file
+    if not endfile(expected_file) then
+        readline(expected_file, expected_line);
+        report "Python reference data loaded successfully" severity note;
+    else
+        report "ERROR: Could not read from file!" severity error;
+        file_close(expected_file);
+        wait;
+    end if;
+    
+    -- Compare each encoded output
+    for i in 0 to 1023 loop
+        wait until samples_done_tb >= i + 1;
+        wait for 1 ns;
+        
+        -- Try to read expected value
+        read(expected_line, expected_val, good_read);
+        
+        if not good_read then
+            report "ERROR: Could not read value at sample " & integer'image(i) severity error;
+            exit;
+        end if;
+        
+        -- Debug first 5
+        if i < 5 then
+            report "Sample " & integer'image(i) & 
+                   ": Python=" & integer'image(expected_val) & 
+                   " VHDL=" & integer'image(to_integer(encodedE_tb)) 
+                   severity note;
+        end if;
+        
+        -- Compare
+        if to_integer(encodedE_tb) /= expected_val then
+            if mismatches < 10 then  -- Only report first 10 mismatches
+                report "MISMATCH at sample " & integer'image(i) & 
+                       ": Expected=" & integer'image(expected_val) & 
+                       " Got=" & integer'image(to_integer(encodedE_tb)) 
+                       severity warning;
+            end if;
+            mismatches := mismatches + 1;
+        end if;
+        
+        -- Skip comma (except last)
+        if i < 1023 then
+            read(expected_line, char, good_read);
+        end if;
+    end loop;
+    
+    -- Wait for compression to complete before final report
+    wait until comp_done_tb = '1';
+    wait for 1 us;
+    
+    report "========================================" severity note;
+    if mismatches = 0 then
+        report "SUCCESS! All 1024 encoded values match Python output!" severity note;
+    else
+        report "FAILED! " & integer'image(mismatches) & " mismatches found!" severity error;
+    end if;
+    report "========================================" severity note;
+    
+    file_close(expected_file);
+    wait;
+end process;
+        
+    
 end Behavioral;
