@@ -23,6 +23,7 @@ library IEEE;
 --library work;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.types_pkg.all;
 --use work.my_btypes.all;
 
 -- Uncomment the following library declaration if using
@@ -41,7 +42,9 @@ entity golombRice is
           total_bits : out integer;
           samples_done : out integer;
           compression_done: out std_logic;
-          Clk: in std_logic);
+          Clk: in std_logic;
+          encoded_array: out output_array;
+          encoded_array_valid: out std_logic);
 end golombRice;
 
 architecture Behavioral of golombRice is
@@ -124,7 +127,7 @@ architecture Behavioral of golombRice is
     signal M_n1 : unsigned(31 downto 0); 
     
     -- state machine for compression
-    type state_type is (IDLE, READY, ENCODE, DONE);
+    type state_type is (IDLE, READY, WAIT_D, ENCODE, DONE);
     signal state: state_type := IDLE;
     
     -- address counter for iterating through BRAM
@@ -134,6 +137,9 @@ architecture Behavioral of golombRice is
     type b16array3 is array(2 downto 0) of std_logic_vector(15 downto 0);
     signal temp_buffer:  b16array3;
     
+    -- for encoded outputs
+    signal encoded_array_reg : output_array := (others => (others => '0'));
+
     
 begin
 
@@ -153,7 +159,8 @@ begin
     total_bits <= total_bits_reg;
     samples_done <= samples_done_reg;
     compression_done <= comp_done;
-                                                
+    
+                         
     process(Clk)
     -- initialize counter variable 
         variable Counter_var : integer := 0; 
@@ -161,6 +168,9 @@ begin
         variable cycle_count : integer range  0 to 1100 := 0;
         variable bits_used : integer:= 0;
         variable pa_K : integer range 0 to 15  :=0;
+        variable sample_index : integer := 0;  -- ADD THIS
+        variable encoded_val : unsigned(15 downto 0);
+        variable encoded_array_var : output_array := (others => (others => '0'));
         
         begin 
         
@@ -177,6 +187,11 @@ begin
                      cycle_count := 0;
                      total_bits_reg <= 0;
                      samples_done_reg  <= 0;
+                     sample_index := 0;  -- RESET
+                     for i in 0 to 1023 loop
+                        encoded_array_var(i) := (others => '0');
+                     end loop;
+                     encoded_array_valid <= '0';
                      
     
                      if k_valid = '1' then 
@@ -199,11 +214,12 @@ begin
                 end if;
                 if cycle_count >= 2 and cycle_count < 1026 then
                        M_n <= unsigned(douta_1);
-                       state <= ENCODE;
+                       state <= WAIT_D;
                        
                 END IF;
                 
-               
+          when WAIT_D =>
+            state <= ENCODE;
                     
           when ENCODE =>
       
@@ -219,14 +235,21 @@ begin
                 
                 -- output error
                 
-                encodedE <= shift_left(resize(M_n,32 ), pa_K + 1)(15 downto pa_K + 1) & to_unsigned(0,1) & unsigned(R(pa_K - 1 downto 0));
+                encoded_val := shift_left(resize(M_n,32 ), pa_K + 1)(15 downto pa_K + 1) & to_unsigned(0,1) & unsigned(R(pa_K - 1 downto 0));
+                encodedE <= encoded_val;
                 
+                if sample_index < 1024 then
+                encoded_array_var(sample_index) := shift_left(resize(M_n,32 ), pa_K + 1)(15 downto pa_K + 1) 
+                                       & to_unsigned(0,1) 
+                                       & unsigned(R(pa_K - 1 downto 0));
+                end if;
                 
                 -- DEBUG: Report what you're encoding
                 if cycle_count <= 10 then  -- First 10 samples only
-                    report "Sample " & integer'image(samples_done_reg) & 
+                    report "Sample " & integer'image(sample_index) & 
                            ": M_n=" & integer'image(to_integer(M_n)) & 
-                           " Q=" & integer'image(to_integer(unsigned(Q))) & 
+                           " Q=" & integer'image(to_integer(unsigned(Q))) &
+                           " encoded= "  & integer'image(to_integer(encoded_val))&
                            " bits=" & integer'image(bits_used) severity note;
                 end if;
     
@@ -234,6 +257,7 @@ begin
                 bits_used := to_integer(unsigned(Q)) + 1 + pa_K;
                 total_bits_reg <= total_bits_reg + bits_used;
                 samples_done_reg <= samples_done_reg + 1;
+                sample_index := sample_index + 1;
     
 
                 -- store error
@@ -254,14 +278,17 @@ begin
             -- Final state after processing all 1024 samples
             E <= '0';
             comp_done <= '1';
+            encoded_array_valid <= '1';
             -- state <= IDLE;  -- Return to IDLE to wait for next k_valid
-        
+            encoded_array_reg <= encoded_array_var;
+            
         
     end case;
             
    end if;     
-        
+   encoded_array <= encoded_array_reg;
   end process;
+  
     
                     
 end Behavioral;

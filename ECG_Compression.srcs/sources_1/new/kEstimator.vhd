@@ -107,6 +107,7 @@ signal state: state_type := IDLE;
 
 -- address counter for iterating through BRAM
 signal addr_count: unsigned (16 downto 0):=(others => '0');
+signal sum_sig:unsigned(25 downto 0) := (others => '0');
 
 begin
     ram: bram_ecg port map(clka=>Clock,
@@ -182,6 +183,7 @@ begin
                 cycle_count := cycle_count + 1; 
                 
                 E <= '1';
+                wea_1 <= "0";
                 addra_1 <= std_logic_vector(read_addr);
                 
 
@@ -198,18 +200,21 @@ begin
                 end if;
                   
                 if cycle_count >= 4 and cycle_count < 1028 then
-                    temp_buffer(0) <= temp_buffer(1) ;
-                    temp_buffer(1) <= temp_buffer(2);
-                    temp_buffer(2) <= douta_1;
+                    temp_buffer(0) <= douta_1; 
+                    temp_buffer(1) <= temp_buffer(0); 
+                    temp_buffer(2) <= temp_buffer(1) ;
                
                 END IF;      
                 -- Linear 2nd Order Predictor       
                     -- pass into predictor
-                    v_sampleShifted := shift_left(signed(temp_buffer(2)),1);
-                    v_predictedO := v_sampleShifted - signed(temp_buffer(1));
+                    if write_addr < 2 then
+                    v_M_n:= signed(temp_buffer(0));
+                    else
+                    v_sampleShifted := shift_left(signed(temp_buffer(1)),1);
+                    v_predictedO := v_sampleShifted - signed(temp_buffer(2));
                     -- calculate error from predicted and current
                     v_M_n := signed(temp_buffer(0)) - v_predictedO;
-                    
+                    end if;
                     
                     -- map to unsigned
                     M_n_interim := resize(v_M_n,17);
@@ -231,13 +236,13 @@ begin
                     
                     
                     
-                    if cycle_count >= 5 then
+                    if cycle_count >= 7 and cycle_count <1031 then
                         -- write back to memory 
-                        E <= '1'; -- bram not enable
-                        wea_1 <= "1";
+                        E_b <= '1'; -- bram not enable
+                        web_1 <= "1";
                        
-                        addra_1 <= std_logic_vector(write_addr);
-                        dina_1 <= std_logic_vector(v_M_n_pos);
+                        addrb_1 <= std_logic_vector(write_addr);
+                        dinb_1 <= std_logic_vector(v_M_n_pos);
                     
                         -- done pointer for first k calculation
                     
@@ -245,6 +250,13 @@ begin
                         
                         if write_addr < 1023 then 
                             write_addr := write_addr + 1;
+                        end if;
+                        
+                        if write_addr < 15 then
+                            report "WRITE: addr=" & integer'image(to_integer(write_addr)) & 
+                                   " data=" & integer'image(to_integer(v_M_n_pos)) &
+                                   " E_b=" & std_logic'image(E_b) &
+                                   " web=" & std_logic'image(web_1(0)) severity note;
                         end if;
             
                     else 
@@ -256,7 +268,7 @@ begin
                     
                     
 
-                    if cycle_count >= 1030 then  
+                    if cycle_count >= 1031 then  
                         state <= ACCUMULATE;            
                     end if;
                             
@@ -270,17 +282,26 @@ begin
                     K_ready <= '0';
                     E <='0';  
                     
-                    cycle_count := cycle_count + 1;    
+                    cycle_count := cycle_count + 1; 
+                    report "=== K ESTIMATION ===" severity note;
+                    report "Sum (decimal): " & integer'image(to_integer(sum_abs_errors)) severity note;
+                   
                     -- rake average
                     if cycle_count >= 1055 then
+                    report "Avg (decimal): " & integer'image(to_integer(avg)) severity note;
+                        sum_sig <= sum_abs_errors;
                         avg <= shift_right(sum_abs_errors, 10);
                         state <= DONE;
                     end if;
                     
+                    
+    
+                    
                   when DONE =>
                     K_ready <= '1';
                     K_reg <= first_one(std_logic_vector(avg));
-                    
+                    E_b <= '1';
+                    web_1 <= "0";
                     -- allow external access
                     if bram_ena_in = '1' then
                         addra_1 <= bram_addr_in;

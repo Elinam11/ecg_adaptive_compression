@@ -20,6 +20,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+use work.types_pkg.all;
 use std.textio.all;
 
 entity golmbRice_tb is
@@ -34,7 +35,9 @@ architecture Behavioral of golmbRice_tb is
             total_bits       : out integer;
             samples_done     : out integer;
             compression_done : out std_logic;
-            Clk              : in std_logic
+            Clk              : in std_logic;
+            encoded_array: out output_array;
+            encoded_array_valid: out std_logic
         );
     end component golombRice;
     
@@ -45,6 +48,8 @@ architecture Behavioral of golmbRice_tb is
     signal total_bits_tb : integer;
     signal samples_done_tb : integer;
     signal comp_done_tb  : std_logic;
+    signal encoded_array_tb  : output_array;
+    signal encoded_array_valid_tb : std_logic;
     
     -- Simulation control
     signal sim_done : boolean := false;
@@ -63,7 +68,9 @@ begin
         total_bits       => total_bits_tb,
         samples_done     => samples_done_tb,
         compression_done => comp_done_tb,
-        Clk              => Clock_tb
+        Clk              => Clock_tb,
+        encoded_array => encoded_array_tb,
+        encoded_array_valid => encoded_array_valid_tb
     );
     
     -- Clock generation
@@ -160,76 +167,56 @@ begin
     end process;
 
     process 
-        file expected_file: text open read_mode is "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.sim/sim_1/behav/xsim/compressed_output.txt";
+    file expected_file: text open read_mode is "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.sim/sim_1/behav/xsim/compressed_output.txt";
     variable expected_line : line;
     variable expected_val : integer;
     variable char: character;
     variable mismatches: integer := 0;
     variable good_read : boolean;
+    variable vhdl_val : integer;
 begin
-    report "Comparison process started, waiting for encoding to begin..." severity note;
-    
-    wait until samples_done_tb > 0;
-    report "Encoding has started" severity note;
-    
-    wait for 100 ns;
+    -- Wait for compression to fully complete
+    wait until comp_done_tb = '1' and encoded_array_valid_tb = '1';
+    wait for 100 ns;  -- Extra safety margin
     
     report "========================================" severity note;
     report "Starting Python vs VHDL comparison..." severity note;
     report "========================================" severity note;
     
-    -- Read the file
-    if not endfile(expected_file) then
-        readline(expected_file, expected_line);
-        report "Python reference data loaded successfully" severity note;
-    else
-        report "ERROR: Could not read from file!" severity error;
-        file_close(expected_file);
-        wait;
-    end if;
+    -- Read Python expected values
+    readline(expected_file, expected_line);
     
-    -- Compare each encoded output
-    for i in 0 to 1023 loop
-        wait until samples_done_tb >= i + 1;
-        wait for 1 ns;
+    -- Compare each value from the stored array
+            for i in 0 to 1023 loop
+            read(expected_line, expected_val, good_read);
         
-        -- Try to read expected value
-        read(expected_line, expected_val, good_read);
+            -- Read VHDL value
+            vhdl_val := to_integer(encoded_array_tb(i));
         
-        if not good_read then
-            report "ERROR: Could not read value at sample " & integer'image(i) severity error;
-            exit;
-        end if;
-        
-        -- Debug first 5
-        if i < 5 then
-            report "Sample " & integer'image(i) & 
-                   ": Python=" & integer'image(expected_val) & 
-                   " VHDL=" & integer'image(to_integer(encodedE_tb)) 
-                   severity note;
-        end if;
-        
-        -- Compare
-        if to_integer(encodedE_tb) /= expected_val then
-            if mismatches < 10 then  -- Only report first 10 mismatches
-                report "MISMATCH at sample " & integer'image(i) & 
-                       ": Expected=" & integer'image(expected_val) & 
-                       " Got=" & integer'image(to_integer(encodedE_tb)) 
-                       severity warning;
+            if i < 10 then
+                report "Sample " & integer'image(i) & 
+                       ": Python=" & integer'image(expected_val) & 
+                       " VHDL=" & integer'image(vhdl_val) 
+                       severity note;
             end if;
-            mismatches := mismatches + 1;
-        end if;
         
-        -- Skip comma (except last)
-        if i < 1023 then
-            read(expected_line, char, good_read);
-        end if;
-    end loop;
+            if vhdl_val /= expected_val then
+                if mismatches < 10 then
+                    report "MISMATCH at sample " & integer'image(i) & 
+                           ": Expected=" & integer'image(expected_val) & 
+                           " Got=" & integer'image(vhdl_val) 
+                           severity warning;
+                end if;
+                mismatches := mismatches + 1;
+            end if;
+        
+            if i < 1023 then
+                read(expected_line, char, good_read);
+            end if;
+        end loop;
+
     
-    -- Wait for compression to complete before final report
-    wait until comp_done_tb = '1';
-    wait for 1 us;
-    
+    -- Final report
     report "========================================" severity note;
     if mismatches = 0 then
         report "SUCCESS! All 1024 encoded values match Python output!" severity note;
@@ -241,6 +228,5 @@ begin
     file_close(expected_file);
     wait;
 end process;
-        
     
 end Behavioral;
