@@ -260,8 +260,8 @@ begin
                         end if;
             
                     else 
-                        E <= '1'; -- bram not enable
-                        wea_1 <= "0";
+                        E_b <= '0'; -- bram not enable
+                        web_1 <= "0";
                         
                     end if;
                     
@@ -300,7 +300,7 @@ begin
                   when DONE =>
                     K_ready <= '1';
                     K_reg <= first_one(std_logic_vector(avg));
-                    E_b <= '1';
+                    E_b <= '0';
                     web_1 <= "0";
                     -- allow external access
                     if bram_ena_in = '1' then
