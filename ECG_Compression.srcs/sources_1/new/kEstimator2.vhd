@@ -31,7 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity kEstimator is
+entity kEstimator2 is
   Port ( Counter: in integer;
          Clock: in std_logic; 
          K_ready: out std_logic; 
@@ -39,9 +39,9 @@ entity kEstimator is
          bram_addr_in : in STD_LOGIC_VECTOR(16 downto 0);
          bram_data_out : out STD_LOGIC_VECTOR(15 downto 0);
          bram_ena_in : in std_logic);
-end kEstimator;
+end kEstimator2;
 
-architecture Behavioral of kEstimator is
+architecture Behavioral of kEstimator2 is
     COMPONENT bram_ecg IS
       PORT (
         clka : IN STD_LOGIC;
@@ -81,7 +81,7 @@ end function;
        
         variable M_n_interimf : signed(16 downto 0);
         variable Z_interimf : unsigned(16 downto 0);
-        variable v_M_n_posf : unsigned(15 downto 0);
+        variable v_M_n_posf : unsigned(16 downto 0);
         begin
         M_n_interimf := resize(error,17);
         if (M_n_interimf  >= 0) then
@@ -185,58 +185,158 @@ begin
                      if Counter = 0 then    
                         state <= READY;
                      end if;
-                
-                when READY =>
-                    E <= '1';
+                 
+                 when READY =>
+                    E <= '1'; -- read enable
                     E_b <= '0';
                     web_1 <= "0";
-                    addra_1 <= std_logic_vector(read_addr);
-                    read_addr := read_addr + 1;
-                    cycle_count := cycle_count + 1;
+                    K_ready <= '0';
                     
-                    -- Just fill BRAM pipeline (2 cycles)
-                    if cycle_count >= 2 then
+                    addra_1 <= std_logic_vector(read_addr);
+                    -- ADD THIS:
+  report "READY: reading addr=" & integer'image(to_integer(read_addr))
+    severity note;
+    
+                    if read_addr < 1023 then
+                        read_addr:= read_addr + 1;
+                    end if;
+                    
+                    cycle_count := cycle_count + 1;    
+
+                    if cycle_count >= 4 then
                         state <= COMPUTE;
                     end if;
-
-when COMPUTE =>
-    -- Read continuously
-    if read_addr <= 1023 then
-        E <= '1';
-        addra_1 <= std_logic_vector(read_addr);
-        read_addr := read_addr + 1;
-    else
-        E <= '0';
-    end if;
-    
-    -- Process current data (always valid after READY)
-    v_current := signed(douta_1);
-    
-    if write_addr < 2 then
-        v_M_n_pos := pos_value(resize(v_current, 17));
-        temp_buffer(to_integer(write_addr)) <= std_logic_vector(v_current);
-    else
-        v_sampleShifted := shift_left(signed(temp_buffer(1)), 1);
-        v_predictedO := v_sampleShifted - signed(temp_buffer(0));
-        v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
-        v_M_n_pos := pos_value(v_M_n);
-        temp_buffer(0) <= temp_buffer(1);
-        temp_buffer(1) <= std_logic_vector(v_current);
-    end if;
-    
-    -- Write result
-    E_b <= '1';
-    web_1 <= "1";
-    addrb_1 <= std_logic_vector(write_addr);
-    dinb_1 <= std_logic_vector(v_M_n_pos);
-    sum_abs_errors := sum_abs_errors + v_M_n_pos;
-    write_addr := write_addr + 1;
-    
-    if write_addr >= 1024 then
-        state <= ACCUMULATE;
-    end if;
                 
-   
+                when COMPUTE =>
+                
+                cycle_count := cycle_count + 1;  -- 2
+              
+    
+                if read_addr <= 1023 then  -- Changed < to <=
+                    E <= '1';
+                    wea_1 <= "0";
+                    addra_1 <= std_logic_vector(read_addr);
+                    
+                    if read_addr < 1023 then
+                        read_addr := read_addr + 1;
+                    end if;
+                else
+                    E <= '0';  -- Stop reading
+                    wea_1 <= "0";
+                end if;
+                 
+                if cycle_count >= 5 and write_addr < 15 then
+                    report "WRITE: addr=" & integer'image(to_integer(write_addr)) & 
+                           " data=" & integer'image(to_integer(v_M_n_pos)) &
+                           " E_b=" & std_logic'image(E_b) &
+                           " web=" & std_logic'image(web_1(0)) severity note;
+                end if;
+                
+                valid_pipe <= valid_pipe(1 downto 0) & '1'; 
+                
+               if valid_pipe(2) = '1' and write_addr < 10 then
+    report "===== ADDR CHECK =====" severity note;
+    report "write_addr=" & integer'image(to_integer(write_addr)) severity note;
+    report "read_addr=" & integer'image(to_integer(read_addr)) severity note;
+    report "v_current=" & integer'image(to_integer(v_current)) severity note;
+    report "Expected from COE:" severity note;
+    case to_integer(write_addr) is
+        when 0 => report "  Should be -428 (0xFE54)" severity note;
+        when 1 => report "  Should be -379 (0xFE85)" severity note;
+        when 2 => report "  Should be -333 (0xFEB3)" severity note;
+        when 3 => report "  Should be -289 (0xFEDF)" severity note;
+        when 4 => report "  Should be -249 (0xFF07)" severity note;
+        when others => null;
+    end case;
+end if;
+
+                 
+                 if valid_pipe(2) = '1' then  
+                -- Linear 2nd Order Predictor       
+                    -- pass into predictor
+                     v_current := signed(douta_1);
+                     
+                     -- Debug what we're reading
+  report "write_addr=" & integer'image(to_integer(write_addr)) & 
+         " v_current=" & integer'image(to_integer(v_current))
+    severity note;
+    
+                    if write_addr < 2 then
+                    v_M_n_pos:= pos_value(resize(v_current, 17));
+                    temp_buffer(to_integer(write_addr)) <= std_logic_vector(v_current);
+                    
+                    else
+                    v_sampleShifted := shift_left(signed(temp_buffer(2)),1);
+                    v_predictedO := v_sampleShifted - signed(temp_buffer(1));
+                    -- calculate error from predicted and current
+                    v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
+               report "PREDICT[" & integer'image(to_integer(write_addr)) & 
+               "] current=" & integer'image(to_integer(v_current)) &
+               " predicted=" & integer'image(to_integer(v_predictedO)) &
+               " error=" & integer'image(to_integer(v_M_n))
+          severity note;
+          
+                    temp_buffer(0) <= temp_buffer(1);
+                    temp_buffer(1) <= temp_buffer(2); 
+                    temp_buffer(2) <= std_logic_vector(v_current) ;
+    
+                    end if;
+                    
+                    
+                    
+       
+                    -- map to unsigned
+                    M_n_interim := resize(v_M_n,17);
+                    if (M_n_interim  >= 0) then
+                        Z_interim := unsigned(shift_left(M_n_interim,1)); -- positive no
+                    
+                    else  
+                        Z_interim := unsigned(shift_left(-M_n_interim,1)-1);  -- neg no
+                    
+                    end if;
+                
+                    v_M_n_pos := resize(Z_interim,16);
+                    report "  mapped=" & integer'image(to_integer(v_M_n_pos))
+          severity note;
+          
+
+ 
+                -- write back to memory 
+                E_b <= '1'; -- bram not enable
+                web_1 <= "1";
+               
+                addrb_1 <= std_logic_vector(write_addr);
+                dinb_1 <= std_logic_vector(v_M_n_pos);
+            
+                -- done pointer for first k calculation
+            
+                sum_abs_errors := sum_abs_errors + v_M_n_pos;
+                
+                if write_addr < 1023 then
+                write_addr := write_addr + 1;
+                end if;
+                        
+                        if write_addr < 15 then
+                            report "WRITE: addr=" & integer'image(to_integer(write_addr)) & 
+                                   " data=" & integer'image(to_integer(v_M_n_pos)) &
+                                   " E_b=" & std_logic'image(E_b) &
+                                   " web=" & std_logic'image(web_1(0)) severity note;
+                        end if;
+            
+                    else 
+                        E_b <= '0'; -- bram not enable
+                        web_1 <= "0";
+                        
+                    end if;
+                    
+                    
+                    
+
+                    if cycle_count >= 1031 then  
+                        state <= ACCUMULATE;            
+                    end if;
+                            
+                            
                                          
                       
                   when ACCUMULATE =>
