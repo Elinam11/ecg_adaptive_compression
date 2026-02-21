@@ -195,7 +195,7 @@ begin
                     cycle_count := cycle_count + 1;
                     
                     -- Just fill BRAM pipeline (2 cycles)
-                    if cycle_count >= 2 then
+                    if cycle_count >= 3 then
                         state <= COMPUTE;
                     end if;
 
@@ -213,8 +213,12 @@ when COMPUTE =>
     v_current := signed(douta_1);
     
     if write_addr < 2 then
+        
         v_M_n_pos := pos_value(resize(v_current, 17));
         temp_buffer(to_integer(write_addr)) <= std_logic_vector(v_current);
+        
+        report "=== CHECK ===" severity note;
+        report "ERROR1: " & integer'image(to_integer(v_M_n_pos)) severity note;
     else
         v_sampleShifted := shift_left(signed(temp_buffer(1)), 1);
         v_predictedO := v_sampleShifted - signed(temp_buffer(0));
