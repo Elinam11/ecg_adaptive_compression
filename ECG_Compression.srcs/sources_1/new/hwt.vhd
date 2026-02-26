@@ -62,7 +62,7 @@ architecture Behavioral of hwt is
    signal coeff_array_valid: std_logic;
     
     -- statemachine
-    type state_type is (IDLE, READY,READO, COMPUTE, DONE);
+    type state_type is (IDLE, READY,READO, COMPUTE, THRESHOLD ,DONE);
     signal state: state_type:= IDLE;
      -- BRAM signals
     signal  dina_1, douta_1 : std_logic_vector (15 downto 0);
@@ -111,6 +111,10 @@ begin
     variable diff_product_ab : signed(32 downto 0) := (others => '0');
     variable half :integer := 512;
     
+    -- threshold
+    variable thresh : integer:= 50;
+    variable coefficient : signed (15 downto 0) :=(others => '0') ;
+    
     --BRAM
     variable read_addr : unsigned(16 downto 0)  := (others => '0');
     variable cycle_count : integer range  0 to 1100 := 0;
@@ -149,6 +153,9 @@ begin
              detail_temp := (others =>(others => '0')) ;
              coeff <= (others =>(others => '0')) ;
      
+             -- threshold
+             thresh := 50;
+             coefficient := (others => '0') ;
              
              for i in 0 to 1023 loop
                 encoded_array_var(i) := (others => '0');
@@ -220,10 +227,19 @@ begin
                   buffer_arr(i) <= data_arr(i);
                 end loop;
                 
-                state <= DONE;
+                state <= THRESHOLD;
     
             end if;
             
+            when THRESHOLD =>
+                for i in 0 to 511 loop
+                    coefficient := abs(buffer_arr(i));
+                    if coefficient <= thresh then
+                        buffer_arr(i)<= (others => '0');
+                    end if;
+                end loop; 
+                state <= DONE;
+                    
             when DONE =>
                 coeff_array_valid <= '1';
                 
