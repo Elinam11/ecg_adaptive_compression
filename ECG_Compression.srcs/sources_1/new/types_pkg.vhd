@@ -25,6 +25,12 @@ use ieee.numeric_std.all;
 package types_pkg is
 
     type output_array is array (0 to 1023) of unsigned(15 downto 0);
+    
+    type array9 is array (0 to 511) of signed(32 downto 0);
+    
+    type array9a is array (0 to 511) of signed(15 downto 0);
+    
+     type array10 is array (0 to 1023) of signed(15 downto 0);
 
 end package;
 
