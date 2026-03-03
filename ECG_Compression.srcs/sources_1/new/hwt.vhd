@@ -35,7 +35,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity hwt is
   Port ( Clock: in std_logic;
-        coeff: out array10);
+        coeff_array_valid: out std_logic;
+        coeff: out array9a);
 end hwt;
 
 architecture Behavioral of hwt is
@@ -56,10 +57,21 @@ architecture Behavioral of hwt is
       );
     END COMPONENT bram_ecg;
     
+    function nonzero(coeff: signed) return integer is
+    variable num_bits: integer:= 0; 
+    begin 
+        for i in coeff'high downto coeff'low loop
+            if coeff(i) /= '0' then
+                num_bits := num_bits + 1;
+            end if;
+        end loop;
+        return num_bits;
+    end function;
+                
     -- hwt
    signal temp_holder: std_logic_vector(31 DOWNTO 0);
    signal  buffer_arr: array9a;
-   signal coeff_array_valid: std_logic;
+   
     
     -- statemachine
     type state_type is (IDLE, READY,READO, COMPUTE, THRESHOLD ,DONE);
@@ -114,6 +126,7 @@ begin
     -- threshold
     variable thresh : integer:= 50;
     variable coefficient : signed (15 downto 0) :=(others => '0') ;
+    variable total_bits_used : integer:= 0;
     
     --BRAM
     variable read_addr : unsigned(16 downto 0)  := (others => '0');
@@ -222,7 +235,7 @@ begin
                 
             
             if level_count = 4 then 
-                
+ 
                 for i in 0 to 511 loop -- up to 512 because the rest would be empty
                   buffer_arr(i) <= data_arr(i);
                 end loop;
@@ -234,6 +247,7 @@ begin
             when THRESHOLD =>
                 for i in 0 to 511 loop
                     coefficient := abs(buffer_arr(i));
+                    total_bits_used := nonzero(coefficient) + total_bits_used; -- for CR tracking
                     if coefficient <= thresh then
                         buffer_arr(i)<= (others => '0');
                     end if;
@@ -242,6 +256,9 @@ begin
                     
             when DONE =>
                 coeff_array_valid <= '1';
+                total_bits_reg <= total_bits_used;
+                coeff <= buffer_arr;
+                
                 
      end case;
     end if;

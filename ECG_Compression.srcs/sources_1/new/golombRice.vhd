@@ -24,6 +24,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use work.types_pkg.all;
+
 --use work.my_btypes.all;
 
 -- Uncomment the following library declaration if using
@@ -77,6 +78,7 @@ architecture Behavioral of golombRice is
              Clock: in std_logic; 
              K_ready: out std_logic;
              K: out integer range 0  to 15;
+             M_errors: out output_array;
              bram_addr_in : in STD_LOGIC_VECTOR(16 downto 0);
              bram_data_out : out STD_LOGIC_VECTOR(15 downto 0);
              bram_ena_in : in std_logic);
@@ -87,7 +89,7 @@ architecture Behavioral of golombRice is
     -- linear predictor
     signal overflow : std_logic;
     signal predictedO : signed(15 downto 0);
-    
+    signal M_n_errors: output_array;
     
     -- param K estimator
     -- signal paramK: unsigned(15 downto 0);
@@ -116,9 +118,7 @@ architecture Behavioral of golombRice is
     
     signal Counter : integer :=0;
     
-    -- golomb 
-    signal Q , R,  M_n0: std_logic_vector (15 downto 0);
-    signal  M_n : unsigned(15 downto 0);
+    
     signal  M_n_pos : unsigned(15 downto 0);
     signal pa_K : integer range 0 to 15  :=0;
     
@@ -127,7 +127,7 @@ architecture Behavioral of golombRice is
     signal M_n1 : unsigned(31 downto 0); 
     
     -- state machine for compression
-    type state_type is (IDLE, READY, WAIT_D, ENCODE, DONE);
+    type state_type is (IDLE, READY,  ENCODE, DONE);
     signal state: state_type := IDLE;
     
     -- address counter for iterating through BRAM
@@ -149,6 +149,7 @@ begin
                              K_ready => k_valid,
                              Clock => Clk, 
                              K=> paramK,
+                             M_errors => M_n_errors,
                              bram_addr_in =>addra_1,
                              bram_data_out => douta_1,
                              bram_ena_in => E);
@@ -171,6 +172,10 @@ begin
         variable sample_index : integer := 0;  -- ADD THIS
         variable encoded_val : unsigned(15 downto 0);
         variable encoded_array_var : output_array := (others => (others => '0'));
+        
+        variable  M_n : unsigned(15 downto 0);
+         -- golomb 
+        variable Q , R,  M_n0: std_logic_vector (15 downto 0) :=(others => '0');
         
         begin 
         
@@ -213,13 +218,14 @@ begin
                            " data=" & integer'image(to_integer(unsigned(douta_1))) severity note;
                 end if;
                 if cycle_count >= 2 and cycle_count < 1026 then
-                       M_n <= unsigned(douta_1);
-                       state <= WAIT_D;
+                       --M_n <= unsigned(douta_1);
+                       M_n := M_n_errors(cycle_count - 2);
+                       state <= ENCODE;
                        
                 END IF;
                 
-          when WAIT_D =>
-            state <= ENCODE;
+          --when WAIT_D =>
+            --state <= ENCODE;
                     
           when ENCODE =>
       
@@ -228,10 +234,10 @@ begin
                      
                 -- find q and r 
                 pa_K := paramK;        
-                Q <=  std_logic_vector(shift_right(M_n , pa_K));
-                M_n0 <= std_logic_vector(M_n);
+                Q :=  std_logic_vector(shift_right(M_n , pa_K));
+                M_n0 := std_logic_vector(M_n);
                 -- mask lower bits
-                R <= std_logic_vector(M_n and shift_right(unsigned(not(std_logic_vector(to_unsigned(0,16)))) , 16 - pa_K)) ;
+                R := std_logic_vector(M_n and shift_right(unsigned(not(std_logic_vector(to_unsigned(0,16)))) , 16 - pa_K)) ;
                 
                 -- output error
                 

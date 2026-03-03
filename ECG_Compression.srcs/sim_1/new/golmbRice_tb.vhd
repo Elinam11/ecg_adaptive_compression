@@ -167,7 +167,7 @@ begin
     end process;
 
     process 
-    file expected_file: text open read_mode is "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.sim/sim_1/behav/xsim/compressed_output.txt";
+    file expected_file: text open read_mode is "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.sim/sim_1/behav/xsim/m_n_pos.txt";
     variable expected_line : line;
     variable expected_val : integer;
     variable char: character;

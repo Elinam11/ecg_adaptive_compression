@@ -1,9 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg_sim_netlist.vhdl" \
-"../../../../ECG_Compression.srcs/sources_1/new/types_pkg.vhd" \
-"../../../../ECG_Compression.srcs/sources_1/new/hwt.vhd" \
-"../../../../ECG_Compression.srcs/sim_1/new/hwt_tb.vhd" \
-
-# Do not sort compile order
-nosort

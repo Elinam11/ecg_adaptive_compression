@@ -21,7 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use work.types_pkg.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
@@ -36,6 +36,7 @@ entity kEstimator is
          Clock: in std_logic; 
          K_ready: out std_logic; 
          K: out integer range 0  to 15;
+         M_errors: out output_array;
          bram_addr_in : in STD_LOGIC_VECTOR(16 downto 0);
          bram_data_out : out STD_LOGIC_VECTOR(15 downto 0);
          bram_ena_in : in std_logic);
@@ -164,6 +165,7 @@ begin
         variable v_current : signed(15 downto 0);
         variable v_predicted : signed(15 downto 0);
         variable v_error : signed(16 downto 0);
+        variable M_n_errors: output_array:=(others => (others => '0'));
         
         begin
         
@@ -228,6 +230,8 @@ when COMPUTE =>
         temp_buffer(1) <= std_logic_vector(v_current);
     end if;
     
+    M_n_errors(to_integer(write_addr)):= v_M_n_pos;
+    
     -- Write result
     E_b <= '1';
     web_1 <= "1";
@@ -237,6 +241,7 @@ when COMPUTE =>
     write_addr := write_addr + 1;
     
     if write_addr >= 1024 then
+        M_errors <= M_n_errors;
         state <= ACCUMULATE;
     end if;
                 

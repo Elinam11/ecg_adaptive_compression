@@ -3,8 +3,8 @@
 # SW Build 5239630 on Fri Nov 08 22:35:27 MST 2024
 # IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
 # SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
-# Start of session at: Wed Feb 18 12:45:14 2026
-# Process ID         : 3640
+# Start of session at: Thu Feb 26 16:18:26 2026
+# Process ID         : 41328
 # Current directory  : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1
 # Command line       : vivado.exe -log bram_ecg.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source bram_ecg.tcl
 # Log file           : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1/bram_ecg.vds
@@ -17,9 +17,9 @@
 # CPU Physical cores : 12
 # CPU Logical cores  : 16
 # Host memory        : 16764 MB
-# Swap memory        : 22258 MB
-# Total Virtual      : 39023 MB
-# Available Virtual  : 8262 MB
+# Swap memory        : 21494 MB
+# Total Virtual      : 38259 MB
+# Available Virtual  : 8212 MB
 #-----------------------------------------------------------
 source bram_ecg.tcl -notrace
 INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: bram_ecg
@@ -30,9 +30,9 @@ INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z010
 INFO: [Device 21-403] Loading part xc7z010clg400-1
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 38136
+INFO: [Synth 8-7075] Helper process launched with PID 21736
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:08 . Memory (MB): peak = 1036.965 ; gain = 466.309
+Starting RTL Elaboration : Time (s): cpu = 00:00:19 ; elapsed = 00:00:24 . Memory (MB): peak = 1039.082 ; gain = 466.031
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-638] synthesizing module 'bram_ecg' [c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/synth/bram_ecg.vhd:76]
 	Parameter C_FAMILY bound to: zynq - type: string 
@@ -214,18 +214,18 @@ WARNING: [Synth 8-7129] Port INJECTDBITERR in module blk_mem_gen_prim_wrapper_in
 WARNING: [Synth 8-7129] Port ECCPIPECE in module blk_mem_gen_prim_wrapper_init__parameterized35 is either unconnected or has no load
 INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:21 ; elapsed = 00:00:43 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished RTL Elaboration : Time (s): cpu = 00:01:01 ; elapsed = 00:02:09 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:21 ; elapsed = 00:00:43 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:02 ; elapsed = 00:02:10 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:21 ; elapsed = 00:00:43 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:01:02 ; elapsed = 00:02:10 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.041 . Memory (MB): peak = 1590.359 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.127 . Memory (MB): peak = 1593.684 ; gain = 0.000
 INFO: [Netlist 29-17] Analyzing 60 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
@@ -238,31 +238,31 @@ Parsing XDC File [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.ru
 Finished Parsing XDC File [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1/dont_touch.xdc]
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1590.359 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1593.684 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.089 . Memory (MB): peak = 1590.359 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.332 . Memory (MB): peak = 1593.684 ; gain = 0.000
 INFO: [Designutils 20-5008] Incremental synthesis strategy off
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:29 ; elapsed = 00:00:52 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Constraint Validation : Time (s): cpu = 00:01:26 ; elapsed = 00:02:41 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7z010clg400-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:29 ; elapsed = 00:00:52 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Loading Part and Timing Information : Time (s): cpu = 00:01:26 ; elapsed = 00:02:41 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
 Applied set_property KEEP_HIERARCHY = SOFT for U0. (constraint file  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1/dont_touch.xdc, line 9).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:29 ; elapsed = 00:00:52 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:26 ; elapsed = 00:02:41 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:30 ; elapsed = 00:00:53 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:01:28 ; elapsed = 00:02:44 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
@@ -290,25 +290,25 @@ Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
 WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:32 ; elapsed = 00:00:56 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:01:36 ; elapsed = 00:02:53 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:39 ; elapsed = 00:01:02 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:52 ; elapsed = 00:03:12 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:39 ; elapsed = 00:01:02 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Timing Optimization : Time (s): cpu = 00:01:52 ; elapsed = 00:03:12 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:39 ; elapsed = 00:01:03 . Memory (MB): peak = 1590.359 ; gain = 1019.703
+Finished Technology Mapping : Time (s): cpu = 00:01:53 ; elapsed = 00:03:13 . Memory (MB): peak = 1593.684 ; gain = 1020.633
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -326,37 +326,37 @@ Start Final Netlist Cleanup
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished IO Insertion : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Renaming Generated Instances : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Renaming Generated Ports : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Handling Custom Attributes : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Renaming Generated Nets : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -380,18 +380,18 @@ Report Cell Usage:
 |11    |FDRE     |    20|
 +------+---------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:43 ; elapsed = 00:01:06 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Finished Writing Synthesis Report : Time (s): cpu = 00:02:01 ; elapsed = 00:03:22 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 135 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:19 ; elapsed = 00:01:04 . Memory (MB): peak = 1671.844 ; gain = 1101.188
-Synthesis Optimization Complete : Time (s): cpu = 00:00:43 ; elapsed = 00:01:07 . Memory (MB): peak = 1671.844 ; gain = 1101.188
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:51 ; elapsed = 00:03:12 . Memory (MB): peak = 1657.910 ; gain = 1084.859
+Synthesis Optimization Complete : Time (s): cpu = 00:02:01 ; elapsed = 00:03:23 . Memory (MB): peak = 1657.910 ; gain = 1084.859
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.030 . Memory (MB): peak = 1671.844 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.045 . Memory (MB): peak = 1657.910 ; gain = 0.000
 INFO: [Netlist 29-17] Analyzing 132 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1686.551 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1672.637 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
@@ -399,12 +399,12 @@ Synth Design complete | Checksum: f3f17afa
 INFO: [Common 17-83] Releasing license: Synthesis
 22 Infos, 101 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:48 ; elapsed = 00:01:12 . Memory (MB): peak = 1686.551 ; gain = 1330.262
-Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.008 . Memory (MB): peak = 1686.551 ; gain = 0.000
+synth_design: Time (s): cpu = 00:02:09 ; elapsed = 00:04:09 . Memory (MB): peak = 1672.637 ; gain = 1315.215
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.014 . Memory (MB): peak = 1672.637 ; gain = 0.000
 INFO: [Common 17-1381] The checkpoint 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1/bram_ecg.dcp' has been generated.
-INFO: [Coretcl 2-1648] Added synthesis output to IP cache for IP bram_ecg, cache-ID = 78f6bb1ad8337d70
+INFO: [Coretcl 2-1648] Added synthesis output to IP cache for IP bram_ecg, cache-ID = c3162daea621581a
 INFO: [Coretcl 2-1174] Renamed 100 cell refs.
-Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 1686.551 ; gain = 0.000
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 1672.637 ; gain = 0.000
 INFO: [Common 17-1381] The checkpoint 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/bram_ecg_synth_1/bram_ecg.dcp' has been generated.
 INFO: [Vivado 12-24828] Executing command : report_utilization -file bram_ecg_utilization_synth.rpt -pb bram_ecg_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Wed Feb 18 12:46:36 2026...
+INFO: [Common 17-206] Exiting Vivado at Thu Feb 26 16:22:51 2026...
