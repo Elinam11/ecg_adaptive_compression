@@ -33,7 +33,8 @@ architecture Behavioral of kEstimator_tb is
     component kEstimator is
   Port ( Counter: in integer;
          Clock: in std_logic; 
-         K_ready: out std_logic; 
+         K_ready: out std_logic;
+         addr_start : in std_logic_vector(16 DOWNTO 0);
          K: out integer range 0  to 15;
          total_bits : out integer; -- gc
          samples_done : out integer;
@@ -55,6 +56,7 @@ end component kEstimator;
     signal sim_done : boolean := false;
     
     -- new
+     signal addr_start_tb: std_logic_vector(16 DOWNTO 0);
      signal K_ready_tb:  std_logic  := '0'; 
      signal total_bits_tb :  integer; -- gc
      signal samples_done_tb :  integer;
@@ -74,6 +76,7 @@ begin
      ( Counter => Counter_tb,
          Clock => Clock_tb,
          K_ready => K_ready_tb,
+         addr_start=> addr_start_tb,
          K => K_tb,
          total_bits => total_bits_tb ,-- gc
          samples_done => samples_done_tb,
@@ -100,6 +103,7 @@ begin
     begin
         -- Initial conditions
         Counter_tb <= 1;
+        addr_start_tb <= (others => '0');
         
         report "=== Starting Parameter K Estimator Test ===" severity note;
         

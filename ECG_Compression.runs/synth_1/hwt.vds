@@ -1,0 +1,42 @@
+#-----------------------------------------------------------
+# Vivado v2024.2 (64-bit)
+# SW Build 5239630 on Fri Nov 08 22:35:27 MST 2024
+# IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
+# SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
+# Start of session at: Sat Mar  7 18:42:44 2026
+# Process ID         : 31548
+# Current directory  : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1
+# Command line       : vivado.exe -log hwt.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source hwt.tcl
+# Log file           : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/hwt.vds
+# Journal file       : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1\vivado.jou
+# Running On         : DESKTOP-5F5CN04
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : 12th Gen Intel(R) Core(TM) i7-1260P
+# CPU Frequency      : 2496 MHz
+# CPU Physical cores : 12
+# CPU Logical cores  : 16
+# Host memory        : 16764 MB
+# Swap memory        : 18585 MB
+# Total Virtual      : 35350 MB
+# Available Virtual  : 15674 MB
+#-----------------------------------------------------------
+source hwt.tcl -notrace
+Command: synth_design -top hwt -part xc7z010clg400-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z010'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z010'
+INFO: [Device 21-403] Loading part xc7z010clg400-1
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 16972
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:11 ; elapsed = 00:00:15 . Memory (MB): peak = 1037.121 ; gain = 466.500
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'hwt' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:44]
+INFO: [Synth 8-3491] module 'bram_ecg' declared at 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-31548-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:6' bound to instance 'ram' of component 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:99]
+INFO: [Synth 8-638] synthesizing module 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-31548-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:30]
+INFO: [Synth 8-256] done synthesizing module 'hwt' (0#1) [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:44]
+WARNING: [Synth 8-6014] Unused sequential element total_bits_reg_reg was removed.  [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:153]
+WARNING: [Synth 8-6014] Unused sequential element samples_done_reg_reg was removed.  [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:154]
+ERROR: [Synth 8-7098] Stack limit reached. Exiting synthesis. Please try running vivado with -stack option to increase stack limit. Ex : -stack 2000 

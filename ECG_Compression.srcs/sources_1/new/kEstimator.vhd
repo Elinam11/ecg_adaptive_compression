@@ -34,6 +34,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity kEstimator is
   Port ( Counter: in integer;
          Clock: in std_logic; 
+         addr_start : in std_logic_vector(16 DOWNTO 0);
          K_ready: out std_logic; 
          K: out integer range 0  to 15;
          total_bits : out integer; -- gc
@@ -62,11 +63,6 @@ architecture Behavioral of kEstimator is
       );
     END COMPONENT bram_ecg;
 
-    
-    component mappingToUnsigned is
-        Port ( A : in signed (15 downto 0);
-               Z : out unsigned (15 downto 0));
-    end component mappingToUnsigned;
     
 -- function to get log2 value
 
@@ -152,8 +148,7 @@ begin
                         addrb => addrb_1,
                         dinb => dinb_1,
                         doutb => doutb_1);
-     Positive_num: mappingToUnsigned port map( A => M_n,
-                                              Z => M_n_pos);
+     
                                               
     K <= K_reg;
     total_bits <= total_bits_reg;
@@ -164,7 +159,7 @@ begin
         variable sum_abs_errors : unsigned(25 downto 0) := (others => '0');
         variable abs_error : unsigned(15 downto 0);
         variable read_addr : unsigned(16 downto 0)  := (others => '0');
-        variable write_addr : unsigned(16 downto 0)  := (others => '0');
+        variable write_count : unsigned(16 downto 0)  := (others => '0');
         variable cycle_count : integer range  0 to 1100 := 0;
         variable v_sampleShifted: signed(15 downto 0);
         variable v_predictedO: signed(15 downto 0);
@@ -199,8 +194,7 @@ begin
                      K_ready <= '0';
                      temp_buffer <= (others =>(others => '0')) ;
                      dinb_1 <= (others => '0');
-                     read_addr := (others => '0');
-                     write_addr := (others => '0');
+                     write_count := (others => '0');
                      cycle_count:= 0;
                      sum_abs_errors := (others => '0');
                      valid_pipe <= (others => '0');
@@ -215,7 +209,8 @@ begin
                      end loop;
                      encoded_array_valid <= '0';
                      
-                     if Counter = 0 then    
+                     if Counter = 0 then  
+                        read_addr:= unsigned(addr_start);
                         state <= READY;
                      end if;
                 
@@ -245,14 +240,15 @@ begin
                 -- Process current data (always valid after READY)
                 v_current := signed(douta_1);
                 
-                if write_addr < 2 then
-                    
+                -- first 2 errors are raw samples since buffer is not full for computation
+                if write_count < 2 then
                     v_M_n_pos := pos_value(resize(v_current, 17));
-                    temp_buffer(to_integer(write_addr)) <= std_logic_vector(v_current);
+                    temp_buffer(to_integer(write_count)) <= std_logic_vector(v_current);
                     
                     report "=== CHECK ===" severity note;
                     report "ERROR1: " & integer'image(to_integer(v_M_n_pos)) severity note;
                 else
+                -- 2nd order linear predictor
                     v_sampleShifted := shift_left(signed(temp_buffer(1)), 1);
                     v_predictedO := v_sampleShifted - signed(temp_buffer(0));
                     v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
@@ -261,17 +257,14 @@ begin
                     temp_buffer(1) <= std_logic_vector(v_current);
                 end if;
                 
-                M_n_errors(to_integer(write_addr)):= v_M_n_pos;
+                M_n_errors(to_integer(write_count)):= v_M_n_pos;
                 
-                -- Write result
-                E_b <= '1';
-                web_1 <= "1";
-                addrb_1 <= std_logic_vector(write_addr);
-                dinb_1 <= std_logic_vector(v_M_n_pos);
+                
                 sum_abs_errors := sum_abs_errors + v_M_n_pos;
-                write_addr := write_addr + 1;
+                write_count := write_count + 1;
                 
-                if write_addr >= 1024 then
+                -- errors are computed for current window
+                if write_count >= 1024 then
                     M_errors <= M_n_errors;
                     state <= ACCUMULATE;
                 end if;
@@ -288,26 +281,27 @@ begin
                     report "=== K ESTIMATION ===" severity note;
                     report "Sum (decimal): " & integer'image(to_integer(sum_abs_errors)) severity note;
                    
-                    -- rake average
+                    -- take average
                     if cycle_count >= 1055 then
                     report "Avg (decimal): " & integer'image(to_integer(avg)) severity note;
                         sum_sig <= sum_abs_errors;
                         avg <= shift_right(sum_abs_errors, 10);
-                        state <= ENCODE;
+                        state <= GOLOMB_R;
                     end if;
  
              when GOLOMB_R =>
                 K_reg <= first_one(std_logic_vector(avg));
                 K_ready <= '1'; 
                 encode_count := 0;
+                state <= ENCODE;
                       
              when ENCODE =>
              -- Golomb Rice Encoder          
-             -- take k
+             -- take computed errors and k
                 vgc_M_n := M_n_errors(encode_count);  
-                 
-                -- find q and r 
                 pa_K := K_reg;        
+                
+                -- find q and r 
                 Q :=  std_logic_vector(shift_right(vgc_M_n , pa_K));
                 M_n0 := std_logic_vector(vgc_M_n);
                 -- mask lower bits

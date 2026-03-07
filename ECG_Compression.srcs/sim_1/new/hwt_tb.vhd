@@ -39,11 +39,15 @@ end hwt_tb;
 architecture Behavioral of hwt_tb is
 component hwt is
   Port ( Clock: in std_logic;
+        compress_data : in std_logic;
+        addr_start : in std_logic_vector(16 DOWNTO 0);
         coeff_array_valid: out std_logic;
              coeff: out array9a);
 end component hwt;
 
 signal coeff_tb: array9a;
+signal compress_data_tb :  std_logic := '0';
+signal addr_start_tb: std_logic_vector(16 DOWNTO 0);
 signal coeff_valid_tb: std_logic := '0';
 signal Clk_tb: std_logic;
 signal sim_done: boolean:= false;
@@ -51,6 +55,8 @@ constant CLK_PERIOD : time := 20 ns;
 
 begin
     UUT: hwt port map ( Clock=> Clk_tb,
+                        addr_start  => addr_start_tb,
+                        compress_data => compress_data_tb,
                         coeff_array_valid => coeff_valid_tb,
                       coeff => coeff_tb);
              
@@ -68,6 +74,8 @@ begin
     process 
     begin
         report "=== Starting HWT Test ===" severity note;
+        compress_data_tb <= '1';
+        addr_start_tb <= (others => '0');
         wait for 200200 ns;
         sim_done <= true;
         wait;

@@ -35,6 +35,8 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity hwt is
   Port ( Clock: in std_logic;
+         compress_data : in std_logic;
+         addr_start : in std_logic_vector(16 DOWNTO 0);
         coeff_array_valid: out std_logic;
         coeff: out array9a);
 end hwt;
@@ -143,7 +145,7 @@ begin
         when IDLE =>
              E <= '0'; -- bram not enable
              wea_1 <= "0";
-             read_addr := (others => '0');
+             read_addr:= unsigned(addr_start);
              cycle_count := 0;
              coeff_count := 0;
              
@@ -173,7 +175,7 @@ begin
              for i in 0 to 1023 loop
                 encoded_array_var(i) := (others => '0');
             end loop;
-            if cycle_count = 0 then
+            if cycle_count = 0 and compress_data = '1' then
                 state <= READY;
             end if;
         
