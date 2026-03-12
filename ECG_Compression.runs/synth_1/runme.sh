@@ -41,4 +41,4 @@ EAStep()
      fi
 }
 
-EAStep vivado -log hwt.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source hwt.tcl
+EAStep vivado -log losslessComp.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source losslessComp.tcl

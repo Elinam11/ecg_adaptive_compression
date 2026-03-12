@@ -4,7 +4,7 @@
 
 set TIME_start [clock seconds] 
 namespace eval ::optrace {
-  variable script "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/hwt.tcl"
+  variable script "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/losslessComp.tcl"
   variable category "vivado_synth"
 }
 
@@ -77,9 +77,28 @@ add_files {{C:/Users/elina/OneDrive - Ashesi University/Capstone/Implementation/
 add_files {{C:/Users/elina/OneDrive - Ashesi University/Capstone/Implementation/data/filtered_ecg_data.coe}}
 add_files {{C:/Users/elina/OneDrive - Ashesi University/Capstone/Implementation/filtered_ecg_data0.coe}}
 read_vhdl -library xil_defaultlib {
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/losslessComp.vhd
   C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/types_pkg.vhd
   C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/fullAdder.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/halfAdder.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/fullAdder12.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/full16BitSubtractor.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/linearPredictor2.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/mappingToUnsigned.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/parameterKEstimator.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/fullAdder17.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/golombRice.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/fullAdder16.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/fullAdder26.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/parameterK.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/bram_test.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/parameterKEst2.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/kEstimator.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/golomb_correct.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/kEstimator2.vhd
 }
+read_vhdl -library work C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/my_btypes.vhd
 read_ip -quiet C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/ip/bram_ecg/bram_ecg.xci
 set_property used_in_implementation false [get_files -all c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg_ooc.xdc]
 
@@ -96,10 +115,12 @@ read_xdc C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/constr
 set_property used_in_implementation false [get_files C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/constrs_1/imports/Implementation/Zybo-Z7-Master.xdc]
 
 set_param ips.enableIPCacheLiteLoad 1
+
+read_checkpoint -auto_incremental -incremental C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/utils_1/imports/synth_1/hwt.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
-synth_design -top hwt -part xc7z010clg400-1
+synth_design -top losslessComp -part xc7z010clg400-1
 OPTRACE "synth_design" END { }
 if { [get_msg_config -count -severity {CRITICAL WARNING}] > 0 } {
  send_msg_id runtcl-6 info "Synthesis results are not added to the cache due to CRITICAL_WARNING"
@@ -109,10 +130,10 @@ if { [get_msg_config -count -severity {CRITICAL WARNING}] > 0 } {
 OPTRACE "write_checkpoint" START { CHECKPOINT }
 # disable binary constraint mode for synth run checkpoints
 set_param constraints.enableBinaryConstraints false
-write_checkpoint -force -noxdef hwt.dcp
+write_checkpoint -force -noxdef losslessComp.dcp
 OPTRACE "write_checkpoint" END { }
 OPTRACE "synth reports" START { REPORT }
-generate_parallel_reports -reports { "report_utilization -file hwt_utilization_synth.rpt -pb hwt_utilization_synth.pb"  } 
+generate_parallel_reports -reports { "report_utilization -file losslessComp_utilization_synth.rpt -pb losslessComp_utilization_synth.pb"  } 
 OPTRACE "synth reports" END { }
 file delete __synthesis_is_running__
 close [open __synthesis_is_complete__ w]

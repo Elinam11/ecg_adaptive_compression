@@ -124,6 +124,9 @@ begin
     variable sum_product_ab : signed(32 downto 0) := (others => '0');
     variable diff_product_ab : signed(32 downto 0) := (others => '0');
     variable half :integer := 512;
+    variable process_idx : integer := 0;
+    variable data_idx : integer := 0;
+    variable copy_idx : integer := 0;
     
     -- threshold
     variable thresh : integer:= 50;
@@ -166,6 +169,9 @@ begin
              data_arr :=(others =>( others => '0'));
              approx_temp  := (others =>(others => '0'));
              detail_temp := (others =>(others => '0')) ;
+             process_idx := 0;
+             data_idx := 0;
+             copy_idx := 0;
              coeff <= (others =>(others => '0')) ;
      
              -- threshold
@@ -211,25 +217,25 @@ begin
                 
         when COMPUTE =>
   
-                for i in 0 to 511 loop
-                    if i < half then
-                    a := data_arr(2*i);
-                    b := data_arr(2*i + 1);
+                if process_idx < half then
+                    
+                    a := data_arr(2*process_idx);
+                    b := data_arr(2*process_idx + 1);
                     sum_ab := resize(a,17) + resize(b,17) ;
                     diff_ab := resize(a,17) - resize(b,17) ;
                     sum_product_ab := sum_ab * to_signed(23170,16);
                     diff_product_ab := diff_ab * to_signed(23170,16);
-                    approx_temp(i) := resize(shift_right(sum_product_ab,15),33);
-                    detail_temp(i) := resize(shift_right(diff_product_ab,15),33);
-                    end if;
-                end loop;
+                    approx_temp(process_idx) := resize(shift_right(sum_product_ab,15),33);
+                    detail_temp(process_idx) := resize(shift_right(diff_product_ab,15),33);
+                    process_idx := process_idx + 1;
+                end if;
                 
-                for i in 0 to 511 loop
-                    if i < half then
-                    data_arr(i) := resize(approx_temp(i),16);
-                    data_arr(half + i) := resize(detail_temp(i),16);
-                    end if;
-                end loop;
+                if data_idx < half then
+                    data_arr(data_idx) := resize(approx_temp(data_idx),16);
+                    data_arr(half + data_idx) := resize(detail_temp(data_idx),16);
+                    data_idx := data_idx + 1;
+                end if;
+                
                 
                 half := half / 2;
                 level_count := level_count + 1;
@@ -238,22 +244,24 @@ begin
             
             if level_count = 4 then 
  
-                for i in 0 to 511 loop -- up to 512 because the rest would be empty
-                  buffer_arr(i) <= data_arr(i);
-                end loop;
+                if copy_idx < 512 then -- up to 512 because the rest would be empty
+                  buffer_arr(copy_idx) <= data_arr(copy_idx);
+                end if;
                 
+                process_idx := 0;
                 state <= THRESHOLD;
     
             end if;
             
             when THRESHOLD =>
-                for i in 0 to 511 loop
-                    coefficient := abs(buffer_arr(i));
+                if process_idx < half then
+                    coefficient := abs(buffer_arr(process_idx));
                     total_bits_used := nonzero(coefficient) + total_bits_used; -- for CR tracking
                     if coefficient <= thresh then
-                        buffer_arr(i)<= (others => '0');
+                        buffer_arr(process_idx)<= (others => '0');
                     end if;
-                end loop; 
+                    process_idx := process_idx + 1;
+                end if; 
                 state <= DONE;
                     
             when DONE =>
