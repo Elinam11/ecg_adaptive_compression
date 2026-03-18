@@ -41,4 +41,4 @@ EAStep()
      fi
 }
 
-EAStep vivado -log losslessComp.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source losslessComp.tcl
+EAStep vivado -log adapLogic.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source adapLogic.tcl

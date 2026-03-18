@@ -28,6 +28,10 @@ package types_pkg is
     
     type array9 is array (0 to 511) of signed(32 downto 0);
     
+    type valStore is array (0 to 2) of signed(15 downto 0);
+    
+    type maBuffer is array (0 to 179) of signed(31 downto 0);
+    
     type array9a is array (0 to 511) of signed(15 downto 0);
     
      type array10 is array (0 to 1023) of signed(15 downto 0);

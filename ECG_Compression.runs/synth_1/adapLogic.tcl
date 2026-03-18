@@ -4,7 +4,7 @@
 
 set TIME_start [clock seconds] 
 namespace eval ::optrace {
-  variable script "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/losslessComp.tcl"
+  variable script "C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/adapLogic.tcl"
   variable category "vivado_synth"
 }
 
@@ -97,6 +97,7 @@ read_vhdl -library xil_defaultlib {
   C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/kEstimator.vhd
   C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/golomb_correct.vhd
   C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/kEstimator2.vhd
+  C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd
 }
 read_vhdl -library work C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/my_btypes.vhd
 read_ip -quiet C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/ip/bram_ecg/bram_ecg.xci
@@ -120,7 +121,7 @@ read_checkpoint -auto_incremental -incremental C:/Users/elina/CapstoneVHDL/ECG_C
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
-synth_design -top losslessComp -part xc7z010clg400-1
+synth_design -top adapLogic -part xc7z010clg400-1
 OPTRACE "synth_design" END { }
 if { [get_msg_config -count -severity {CRITICAL WARNING}] > 0 } {
  send_msg_id runtcl-6 info "Synthesis results are not added to the cache due to CRITICAL_WARNING"
@@ -130,10 +131,10 @@ if { [get_msg_config -count -severity {CRITICAL WARNING}] > 0 } {
 OPTRACE "write_checkpoint" START { CHECKPOINT }
 # disable binary constraint mode for synth run checkpoints
 set_param constraints.enableBinaryConstraints false
-write_checkpoint -force -noxdef losslessComp.dcp
+write_checkpoint -force -noxdef adapLogic.dcp
 OPTRACE "write_checkpoint" END { }
 OPTRACE "synth reports" START { REPORT }
-generate_parallel_reports -reports { "report_utilization -file losslessComp_utilization_synth.rpt -pb losslessComp_utilization_synth.pb"  } 
+generate_parallel_reports -reports { "report_utilization -file adapLogic_utilization_synth.rpt -pb adapLogic_utilization_synth.pb"  } 
 OPTRACE "synth reports" END { }
 file delete __synthesis_is_running__
 close [open __synthesis_is_complete__ w]
