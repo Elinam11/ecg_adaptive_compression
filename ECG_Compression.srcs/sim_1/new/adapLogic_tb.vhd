@@ -71,9 +71,10 @@ begin
     begin
         report "=== Starting Adaptive Logic Test ===" severity note;
         
-        start_tb <=  '0';
-        wait for 300200 ns;
+        start_tb <=  '1';
+        wait for 50500200 ns;
         sim_done <= true;
+        start_tb <=  '0';
         wait;
     end process;
     
