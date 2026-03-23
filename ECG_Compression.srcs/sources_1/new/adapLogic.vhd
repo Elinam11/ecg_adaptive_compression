@@ -36,6 +36,7 @@ entity adapLogic is
          start: in std_logic;
          start_addr: out std_logic_vector(16 downto 0);
          end_addr: out std_logic_vector(16 downto 0));
+         
 end adapLogic;
 
 architecture Behavioral of adapLogic is
@@ -57,6 +58,15 @@ COMPONENT bram_ecg IS
       );
     END COMPONENT bram_ecg;
     
+    component hwt is
+      Port ( Clk: in std_logic;
+             compress_data : in std_logic; -- same as hwt_start 
+             ecg_samples : in dataStore;
+             real_samples : in integer;
+            coeff_array_valid: out std_logic;
+            coeff: out halfDataStore);
+    end component hwt;
+
     -- bandpass filter 
     -- first-order low-pass IIR filter to smooth signal and remove low freq noise with
     -- high pass filter to remove baseline drift
@@ -123,9 +133,25 @@ COMPONENT bram_ecg IS
     signal addrb_1: STD_LOGIC_VECTOR (16 downto 0):=(others => '0');
     signal  E_b: std_logic:= '0';
     
+    -- hwt compression
+    signal n_real : integer := 0 ;
+    signal is_partial  : std_logic := '0' ;
     -- state machine for k estimation
-    type state_type is (IDLE, READY, COMPUTE, QRS, DONE);
+    type state_type is (IDLE, READY, COMPUTE, QRS, SEG_HWT_START, LOAD_BLOCK, WAIT_HWT, NEXT_BLOCK,DONE);
     signal state: state_type := IDLE;
+    
+    -- non qrs samples
+    signal block_size :integer := 256;
+    signal is_parital :std_logic := '0';
+    signal block_count :integer range 0 to 1023 := 0;
+    signal full_blocks :integer range 0 to 1023 := 0;
+    signal remainder :integer range 0 to 255 := 0;
+    signal lossy_start_addr : std_logic_vector(16 downto 0):= (others => '0');
+    signal lossy_end_addr : std_logic_vector(16 downto 0):= (others => '0');
+    signal hwt_start : std_logic := '0';
+    signal coeff_valid: std_logic := '0';
+    signal lossy_block: dataStore;
+    signal coeff_array: halfDataStore;
     
 begin
     ram: bram_ecg port map(clka=>Clock,
@@ -141,7 +167,12 @@ begin
                         dinb => dinb_1,
                         doutb => doutb_1);
      
-    
+     lossy_compressor: hwt port map( Clk => Clock,
+                                     compress_data =>hwt_start, -- same as hwt_start 
+                                     ecg_samples => lossy_block,
+                                     real_samples => n_real,
+                                    coeff_array_valid => coeff_valid,
+                                    coeff => coeff_array);
     process(Clock)
     variable stored_values: valStore;
     variable vsample : signed(15 downto 0) ;
@@ -177,7 +208,15 @@ begin
     variable right_end: integer;
     variable q_onset: integer;
     variable s_offset: integer;
+    variable q_onseto: integer;
+    variable s_offseto: integer;
     variable max_idx: integer;
+    variable qrs_count: integer;
+    
+    --hwt
+    variable n_samples :std_logic_vector(16 downto 0);
+    variable lossy_block_data: dataStore;
+    variable acc_count: integer := 0;
     
     begin
     if rising_edge(Clock) then
@@ -224,7 +263,10 @@ begin
                      left_start:= 0;
                      right_end:= 0;
                      q_onset:= 0;
-                     max_idx:= 138239; -- from calculation of bram size
+                     max_idx:= 131071 ; -- from calculation of bram size
+                     
+                     --hwt
+                     qrs_count:= 0;
                      
                      if start = '0' then  
                         read_addr:= (others => '0');
@@ -245,7 +287,7 @@ begin
                     end if;
 
             when COMPUTE =>
-                if read_addr <= 1023 then
+                if read_addr <= 131072 then
                     E <= '1';
                     addra_1 <= std_logic_vector(read_addr);
                     read_addr := read_addr + 1;
@@ -296,6 +338,7 @@ begin
                 end if;
                     
          when QRS =>
+            
             qrs_idx := cycle_count - 3;  -- check value 
             if qrs_idx - v_max_left > 0 then
                 left_start := qrs_idx - v_max_left ;
@@ -309,15 +352,114 @@ begin
                 left_start:= max_idx;
             end if; 
             
+            -- store past indices of Q and S
+            q_onseto:= q_onset;
+            s_offseto:= s_offset;
+            
             q_onset:= left_start;
             s_offset := right_end;
             
             start_addr <= std_logic_vector(to_unsigned(q_onset - 1,17)); -- zero indexing
             end_addr <= std_logic_vector(to_unsigned(s_offset - 1,17));
+            -- n_samples:= to_integer(start_addr - end_addr);
             
-            state <= COMPUTE;
             
+            -- send QRS TO LOSSLESS
+            
+            -- send non QRS TO HWT 
+            
+            -- if begining send first sample to Q to this state and not q onset is not addr o
+            if qrs_count = 0 then
+                lossy_start_addr <= (others => '0'); 
+                lossy_end_addr <= std_logic_vector(to_unsigned(q_onset - 2,17)); -- -2 for zero indexing and to avoid first Q sample
+                n_samples := std_logic_vector(signed(lossy_start_addr) - signed(lossy_end_addr));
+                qrs_count := qrs_count + 1;
+                state <= SEG_HWT_START;
+            
+            -- if end -- s detected is less than 256 from , check if there is another r peak last index
+            elsif cycle_count >= 131072  + 4 and (s_offset /= 131072 ) then
+                lossy_start_addr <= std_logic_vector(to_unsigned(s_offset - 2,17)); -- -2 for zero indexing and to avoid final S sample
+                lossy_end_addr <= std_logic_vector(to_unsigned(131072 ,17)); -- last address
+                n_samples := std_logic_vector(signed(lossy_start_addr) - signed(lossy_end_addr));
+                qrs_count := qrs_count + 1;
+                state <= SEG_HWT_START;
+                
+            -- if middle send past s index and current q
+            else
+                lossy_start_addr <= std_logic_vector(to_unsigned(s_offseto - 2,17)); -- -2 for zero indexing and to avoid final S sample
+                lossy_end_addr <= std_logic_vector(to_unsigned(q_onset - 2,17)); -- -2 for zero indexing and to avoid first Q sample
+                n_samples := std_logic_vector(signed(lossy_start_addr) - signed(lossy_end_addr));
+                qrs_count := qrs_count + 1;
+                state <= SEG_HWT_START;
+            end if;
+            
+            
+            when SEG_HWT_START =>
+                full_blocks <= to_integer(unsigned(n_samples(15 downto 8)));
+                remainder <= to_integer(unsigned(n_samples(7 downto 0)));
+                block_count <= 0;
+                acc_count := 0;
+                state <= LOAD_BLOCK;
+            
+            when LOAD_BLOCK =>
+                -- make sure it is within non qrs and don't waste memory access
+                if acc_count < to_integer(unsigned(n_samples)) then 
+                    addrb_1 <= std_logic_vector(signed(lossy_start_addr) + to_signed(block_count*256,17));
+                    
+                 end if;   
+                 
+                --load data into hwt block if it was within non QRS start and end
+                if acc_count >= 3 then
+                    lossy_block_data(acc_count - 3):= signed(doutb_1);
+                end if;
+                
+                -- on the last iteration to fill the block set these variables
+                if acc_count >= 255 +3 then
+                    if block_count < full_blocks then
+                        n_real <= 256;
+                        is_partial <= '0';
+                        lossy_block <= lossy_block_data;
+                        hwt_start <= '1';
+                        state <= WAIT_HWT;
+                    else
+                        n_real <= remainder;
+                        is_partial <= '1';
+                        lossy_block <= lossy_block_data;
+                        hwt_start <= '1';
+                        state <= WAIT_HWT;
+                     end if;
+                 end if;
+                acc_count := acc_count + 1;
+                
+            
+            when WAIT_HWT =>
+                if coeff_valid = '1' then
+                    -- send it to packetizer 
+                    
+                    -- go to the next detected block
+                    state <= NEXT_BLOCK;
+                   
+                 end if;
+                 
+            when NEXT_BLOCK =>
+                if block_count < full_blocks then 
+                    block_count <= block_count + 1;
+                    state <= LOAD_BLOCK;
+                    
+                -- process last block    
+                elsif remainder > 0 and is_partial = '0' then
+                    block_count <= full_blocks;
+                    state <= LOAD_BLOCK;
+                else
+                    if cycle_count >= 131072  + 4 then
+                        state <= DONE;
+                    else 
+                        state <= COMPUTE;
+                    end if;
+                end if ;
+                    
             when DONE =>
+                
                 state <= IDLE;
         end case;            
     end if;

@@ -30,6 +30,10 @@ package types_pkg is
     
     type valStore is array (0 to 2) of signed(15 downto 0);
     
+    type dataStore is array (0 to 255) of signed(15 downto 0);
+    
+    type halfDataStore is array (0 to 127) of signed(15 downto 0);
+    
     type maBuffer is array (0 to 179) of signed(31 downto 0);
     
     type array9a is array (0 to 511) of signed(15 downto 0);

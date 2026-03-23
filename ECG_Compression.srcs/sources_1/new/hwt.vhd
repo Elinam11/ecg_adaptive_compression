@@ -34,11 +34,12 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity hwt is
-  Port ( Clock: in std_logic;
-         compress_data : in std_logic;
-         addr_start : in std_logic_vector(16 DOWNTO 0);
+  Port ( Clk: in std_logic;
+         compress_data : in std_logic; -- same as hwt_start 
+         ecg_samples : in dataStore;
+         real_samples : in integer;
         coeff_array_valid: out std_logic;
-        coeff: out array9a);
+        coeff: out halfDataStore);
 end hwt;
 
 architecture Behavioral of hwt is
@@ -59,6 +60,7 @@ architecture Behavioral of hwt is
       );
     END COMPONENT bram_ecg;
     
+    
     function nonzero(coeff: signed) return integer is
     variable num_bits: integer:= 0; 
     begin 
@@ -72,11 +74,11 @@ architecture Behavioral of hwt is
                 
     -- hwt
    signal temp_holder: std_logic_vector(31 DOWNTO 0);
-   signal  buffer_arr: array9a;
+   signal  buffer_arr: halfDataStore;
    
     
     -- statemachine
-    type state_type is (IDLE, READY,READO, COMPUTE, THRESHOLD ,DONE);
+    type state_type is (IDLE, READY, COMPUTE, THRESHOLD ,DONE);
     signal state: state_type:= IDLE;
      -- BRAM signals
     signal  dina_1, douta_1 : std_logic_vector (15 downto 0);
@@ -96,25 +98,27 @@ architecture Behavioral of hwt is
     signal comp_done : std_logic := '0';
     
 begin
-    ram: bram_ecg port map(clka=>Clock,
+    ram: bram_ecg port map(clka=>Clk,
                         wea => wea_1,
                         ena => E,
                         addra => addra_1,
                         dina => dina_1,
                         douta => douta_1,
-                        clkb => Clock,
+                        clkb => Clk,
                         enb => E_b,
                         web => web_1,
                         addrb => addrb_1,
                         dinb => dinb_1,
                         doutb => doutb_1);
                         
-    process(Clock)
+    process(Clk)
     variable  approx_temp: array9;
     variable  detail_temp: array9;
-   
+    
+    
+    
     -- hwt
-    variable data_arr : array10;
+    variable data_arr : dataStore;
     variable level_count: integer := 0;
     variable coeff_count: integer := 0;
     variable a : signed(15 downto 0) := (others => '0');
@@ -142,13 +146,12 @@ begin
     variable encoded_array_var : output_array := (others => (others => '0'));
     
     begin
-    if rising_edge(Clock) then
+    if rising_edge(Clk) then
     
     case state is 
         when IDLE =>
              E <= '0'; -- bram not enable
              wea_1 <= "0";
-             read_addr:= unsigned(addr_start);
              cycle_count := 0;
              coeff_count := 0;
              
@@ -156,7 +159,7 @@ begin
              total_bits_reg <= 0;
              samples_done_reg  <= 0;
              sample_index := 0;  -- RESET
-             
+                         
              -- hwt
              level_count := 0;
              coeff_array_valid <= '0';
@@ -175,29 +178,20 @@ begin
              coeff <= (others =>(others => '0')) ;
      
              -- threshold
-             thresh := 50;
+             thresh := 35;
              coefficient := (others => '0') ;
              
-             for i in 0 to 1023 loop
+             for i in 0 to 255 loop
                 encoded_array_var(i) := (others => '0');
             end loop;
+            
             if cycle_count = 0 and compress_data = '1' then
                 state <= READY;
             end if;
         
-        when READY => 
-            -- set up for memory access
-            E <= '1';
-            addra_1 <= std_logic_vector(read_addr);
-            read_addr:= read_addr + 1;
+        
+         when READY =>
             cycle_count:= cycle_count + 1;
-            
-            
-            -- wait for data to clock out
-            if cycle_count >= 3 then
-               state <= READO;
-                    end if;
-         when READO =>
             -- read data into coeff array
             if read_addr <= 1023 then   -- !!!condition for a single window
                 E <= '1';
@@ -208,12 +202,14 @@ begin
             end if;
             
             -- write data into data array
-            data_arr(coeff_count) := signed(douta_1);
-            if coeff_count >= 1023 then
-                half := 512;
-                state <= COMPUTE;
-            end if;
-            coeff_count:= coeff_count + 1;
+            data_arr := ecg_samples;
+            
+            
+            half := 128;
+            buffer_arr <= (others =>(others => '0')) ;
+            state <= COMPUTE;
+            
+            
                 
         when COMPUTE =>
   
@@ -244,7 +240,7 @@ begin
             
             if level_count = 4 then 
  
-                if copy_idx < 512 then -- up to 512 because the rest would be empty
+                if copy_idx < 127 then -- up to 127 because the rest would be empty
                   buffer_arr(copy_idx) <= data_arr(copy_idx);
                 end if;
                 
@@ -254,7 +250,10 @@ begin
             end if;
             
             when THRESHOLD =>
-                if process_idx < half then
+                -- zero out non real samples
+                if process_idx > real_samples then
+                    buffer_arr(process_idx)<= (others => '0');
+                elsif process_idx < half then
                     coefficient := abs(buffer_arr(process_idx));
                     total_bits_used := nonzero(coefficient) + total_bits_used; -- for CR tracking
                     if coefficient <= thresh then

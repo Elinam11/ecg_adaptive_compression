@@ -3,8 +3,8 @@
 # SW Build 5239630 on Fri Nov 08 22:35:27 MST 2024
 # IP Build 5239520 on Sun Nov 10 16:12:51 MST 2024
 # SharedData Build 5239561 on Fri Nov 08 14:39:27 MST 2024
-# Start of session at: Tue Mar 17 23:12:04 2026
-# Process ID         : 12964
+# Start of session at: Mon Mar 23 15:46:21 2026
+# Process ID         : 17972
 # Current directory  : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1
 # Command line       : vivado.exe -log adapLogic.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source adapLogic.tcl
 # Log file           : C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/adapLogic.vds
@@ -17,9 +17,9 @@
 # CPU Physical cores : 12
 # CPU Logical cores  : 16
 # Host memory        : 16764 MB
-# Swap memory        : 18157 MB
-# Total Virtual      : 34921 MB
-# Available Virtual  : 7438 MB
+# Swap memory        : 27903 MB
+# Total Virtual      : 44668 MB
+# Available Virtual  : 3923 MB
 #-----------------------------------------------------------
 source adapLogic.tcl -notrace
 Command: read_checkpoint -auto_incremental -incremental C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/utils_1/imports/synth_1/hwt.dcp
@@ -30,95 +30,106 @@ Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7z010'
 INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z010'
 INFO: [Device 21-403] Loading part xc7z010clg400-1
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 10972
+INFO: [Synth 8-7075] Helper process launched with PID 21688
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1038.762 ; gain = 467.062
+Starting RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 1042.508 ; gain = 470.434
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-638] synthesizing module 'adapLogic' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:41]
-INFO: [Synth 8-3491] module 'bram_ecg' declared at 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-12964-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:6' bound to instance 'ram' of component 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:131]
-INFO: [Synth 8-638] synthesizing module 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-12964-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:30]
-INFO: [Synth 8-256] done synthesizing module 'adapLogic' (0#1) [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:41]
-WARNING: [Synth 8-3848] Net dina_1 in module/entity adapLogic does not have driver. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:115]
+INFO: [Synth 8-638] synthesizing module 'adapLogic' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:42]
+INFO: [Synth 8-3491] module 'bram_ecg' declared at 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-17972-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:6' bound to instance 'ram' of component 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:157]
+INFO: [Synth 8-638] synthesizing module 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-17972-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:30]
+INFO: [Synth 8-3491] module 'hwt' declared at 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:36' bound to instance 'lossy_compressor' of component 'hwt' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:170]
+INFO: [Synth 8-638] synthesizing module 'hwt' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:45]
+INFO: [Synth 8-3491] module 'bram_ecg' declared at 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/.Xil/Vivado-17972-DESKTOP-5F5CN04/realtime/bram_ecg_stub.vhdl:6' bound to instance 'ram' of component 'bram_ecg' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:101]
+INFO: [Synth 8-256] done synthesizing module 'hwt' (0#1) [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:45]
+INFO: [Synth 8-256] done synthesizing module 'adapLogic' (0#1) [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:42]
+WARNING: [Synth 8-6014] Unused sequential element total_bits_reg_reg was removed.  [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:159]
+WARNING: [Synth 8-6014] Unused sequential element samples_done_reg_reg was removed.  [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:160]
+WARNING: [Synth 8-3848] Net dina_1 in module/entity hwt does not have driver. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:84]
+WARNING: [Synth 8-3848] Net dinb_1 in module/entity hwt does not have driver. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:90]
+WARNING: [Synth 8-3848] Net dina_1 in module/entity adapLogic does not have driver. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:125]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1153.113 ; gain = 581.414
+Finished RTL Elaboration : Time (s): cpu = 00:00:14 ; elapsed = 00:00:15 . Memory (MB): peak = 1488.164 ; gain = 916.090
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1153.113 ; gain = 581.414
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:15 ; elapsed = 00:00:15 . Memory (MB): peak = 1488.164 ; gain = 916.090
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 1153.113 ; gain = 581.414
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:15 ; elapsed = 00:00:15 . Memory (MB): peak = 1488.164 ; gain = 916.090
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.015 . Memory (MB): peak = 1153.113 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 1488.164 ; gain = 0.000
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
 Initializing timing engine
+Parsing XDC File [c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg/bram_ecg_in_context.xdc] for cell 'lossy_compressor/ram'
+Finished Parsing XDC File [c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg/bram_ecg_in_context.xdc] for cell 'lossy_compressor/ram'
 Parsing XDC File [c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg/bram_ecg_in_context.xdc] for cell 'ram'
 Finished Parsing XDC File [c:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg/bram_ecg_in_context.xdc] for cell 'ram'
 Parsing XDC File [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/constrs_1/imports/Implementation/Zybo-Z7-Master.xdc]
 Finished Parsing XDC File [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/constrs_1/imports/Implementation/Zybo-Z7-Master.xdc]
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1245.629 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.015 . Memory (MB): peak = 1666.215 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.013 . Memory (MB): peak = 1245.629 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.240 . Memory (MB): peak = 1666.215 ; gain = 0.000
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
+Finished Constraint Validation : Time (s): cpu = 00:00:35 ; elapsed = 00:00:36 . Memory (MB): peak = 1666.215 ; gain = 1094.141
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7z010clg400-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:35 ; elapsed = 00:00:36 . Memory (MB): peak = 1666.215 ; gain = 1094.141
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
+Applied set_property KEEP_HIERARCHY = SOFT for lossy_compressor/ram. (constraint file  auto generated constraint).
 Applied set_property KEEP_HIERARCHY = SOFT for ram. (constraint file  auto generated constraint).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:35 ; elapsed = 00:00:36 . Memory (MB): peak = 1666.215 ; gain = 1094.141
 ---------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-Start Preparing Guide Design
----------------------------------------------------------------------------------
-CRITICAL WARNING: [Synth 8-6895] The reference checkpoint C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/utils_1/imports/synth_1/hwt.dcp is not suitable for use with incremental synthesis for this design. Please regenerate the checkpoint for this design with -incremental_synth switch in the same Vivado session that synth_design has been run. Synthesis will continue with the default flow
----------------------------------------------------------------------------------
-Finished Doing Graph Differ : Time (s): cpu = 00:00:14 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
----------------------------------------------------------------------------------
----------------------------------------------------------------------------------
-Finished Preparing Guide Design : Time (s): cpu = 00:00:14 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
----------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'hwt'
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'adapLogic'
 ---------------------------------------------------------------------------------------------------
                    State |                     New Encoding |                Previous Encoding 
 ---------------------------------------------------------------------------------------------------
-                    idle |                               00 |                              000
-                   ready |                               01 |                              001
-                 compute |                               10 |                              010
-                     qrs |                               11 |                              011
+                    idle |                            00001 |                              000
+                   ready |                            00010 |                              001
+                 compute |                            00100 |                              010
+               threshold |                            01000 |                              011
+                    done |                            10000 |                              100
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'hwt'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    idle |                             0000 |                             0000
+                   ready |                             0001 |                             0001
+                 compute |                             0010 |                             0010
+                     qrs |                             0011 |                             0011
+           seg_hwt_start |                             0100 |                             0100
+              load_block |                             0101 |                             0101
+                wait_hwt |                             0110 |                             0110
+              next_block |                             0111 |                             0111
+                    done |                             1000 |                             1000
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'adapLogic'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:14 ; elapsed = 00:00:16 . Memory (MB): peak = 1245.629 ; gain = 673.930
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:03:28 ; elapsed = 00:03:41 . Memory (MB): peak = 1666.215 ; gain = 1094.141
 ---------------------------------------------------------------------------------
-
-
-Incremental Synthesis Report Summary:
-
-1. Incremental synthesis run: no
-
-   Reason for not running incremental synthesis : 
-
-
-INFO: [Synth 8-7130] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -126,31 +137,47 @@ Detailed RTL Component Info :
 +---Adders : 
 	   4 Input   64 Bit       Adders := 1     
 	   3 Input   33 Bit       Adders := 1     
-	   2 Input   32 Bit       Adders := 5     
+	   2 Input   32 Bit       Adders := 11    
 	   3 Input   32 Bit       Adders := 1     
-	   2 Input   17 Bit       Adders := 1     
+	   2 Input   31 Bit       Adders := 1     
+	   3 Input   17 Bit       Adders := 3     
+	   2 Input   17 Bit       Adders := 4     
+	   2 Input   16 Bit       Adders := 3     
 	   3 Input   16 Bit       Adders := 2     
-	   2 Input   16 Bit       Adders := 2     
+	   2 Input   10 Bit       Adders := 1     
 	   2 Input    4 Bit       Adders := 1     
 +---Registers : 
 	               64 Bit    Registers := 1     
-	               32 Bit    Registers := 23    
-	               17 Bit    Registers := 4     
-	               16 Bit    Registers := 5     
+	               33 Bit    Registers := 1024  
+	               32 Bit    Registers := 30    
+	               17 Bit    Registers := 8     
+	               16 Bit    Registers := 1029  
+	               10 Bit    Registers := 2     
+	                8 Bit    Registers := 2     
 	                4 Bit    Registers := 1     
-	                1 Bit    Registers := 2     
+	                1 Bit    Registers := 7     
 +---Multipliers : 
 	               3x32  Multipliers := 1     
 +---Muxes : 
-	   4 Input   64 Bit        Muxes := 1     
-	   2 Input   32 Bit        Muxes := 2     
-	   4 Input   32 Bit        Muxes := 4     
-	   4 Input   17 Bit        Muxes := 1     
-	   4 Input   16 Bit        Muxes := 4     
-	   4 Input    4 Bit        Muxes := 1     
-	   4 Input    2 Bit        Muxes := 1     
-	   2 Input    1 Bit        Muxes := 17    
-	   4 Input    1 Bit        Muxes := 28    
+	   9 Input   64 Bit        Muxes := 1     
+	   2 Input   33 Bit        Muxes := 2048  
+	   5 Input   33 Bit        Muxes := 1024  
+	   5 Input   32 Bit        Muxes := 4     
+	   2 Input   32 Bit        Muxes := 5     
+	   9 Input   32 Bit        Muxes := 5     
+	   2 Input   31 Bit        Muxes := 1     
+	   2 Input   17 Bit        Muxes := 4     
+	   9 Input   17 Bit        Muxes := 1     
+	   2 Input   16 Bit        Muxes := 1281  
+	   5 Input   16 Bit        Muxes := 385   
+	   9 Input   16 Bit        Muxes := 4     
+	   2 Input   10 Bit        Muxes := 1     
+	   9 Input   10 Bit        Muxes := 1     
+	   9 Input    4 Bit        Muxes := 2     
+	   2 Input    4 Bit        Muxes := 3     
+	   5 Input    1 Bit        Muxes := 139   
+	   2 Input    1 Bit        Muxes := 147   
+	   9 Input    1 Bit        Muxes := 39    
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -166,7 +193,21 @@ Finished Part Resource Summary
 ---------------------------------------------------------------------------------
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
-WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+DSP Report: Generating DSP ARG, operation Mode is: (D+A)*(B:0x5a82).
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: operator ARG0 is absorbed into DSP ARG.
+DSP Report: Generating DSP ARG, operation Mode is: (D-A)*(B:0x5a82).
+DSP Report: operator ARG is absorbed into DSP ARG.
+DSP Report: operator ARG0 is absorbed into DSP ARG.
+WARNING: [Synth 8-3936] Found unconnected internal register 'process_idx_reg' and it is trimmed from '32' to '8' bits. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/hwt.vhd:177]
+WARNING: [Synth 8-3917] design hwt__GB11 has port P[0] driven by constant 0
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\wea_1_reg[0] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\thresh_reg[5] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\copy_idx_reg[5] )
+INFO: [Synth 8-4471] merging register 'block_count_reg[9:0]' into 'block_count_reg[9:0]' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:394]
+INFO: [Synth 8-4471] merging register 'v_x1_reg[15:0]' into 'v_x1_reg[15:0]' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:239]
+INFO: [Synth 8-4471] merging register 'lossy_start_addr_reg[16:0]' into 'lossy_start_addr_reg[16:0]' [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:371]
+WARNING: [Synth 8-3936] Found unconnected internal register 's_offset_reg' and it is trimmed from '32' to '17' bits. [C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.srcs/sources_1/new/adapLogic.vhd:355]
 DSP Report: Generating DSP ARG3, operation Mode is: A*B.
 DSP Report: operator ARG3 is absorbed into DSP ARG3.
 DSP Report: Generating DSP ARG2, operation Mode is: PCIN-A2*B2.
@@ -174,22 +215,159 @@ DSP Report: register v_x2_reg is absorbed into DSP ARG2.
 DSP Report: register v_x1_reg is absorbed into DSP ARG2.
 DSP Report: operator ARG2 is absorbed into DSP ARG2.
 DSP Report: operator ARG3 is absorbed into DSP ARG2.
+INFO: [Synth 8-3886] merging instance 'right_end_reg[24]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[25]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[26]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[27]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[28]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[29]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[30]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[31]' (FDE) to 'v_refractory_reg[31]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[17]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[18]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[19]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[20]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[21]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[22]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[23]' (FDE) to 'v_refractory_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[30]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[29]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[28]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[27]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[26]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[25]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[24]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[23]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[22]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[21]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[20]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[19]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[18]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[17]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[16]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[15]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[14]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[13]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[12]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[11]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[10]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[9]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[8]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[7]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[6]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[5]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[4]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[3]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[2]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3886] merging instance 'qrs_count_reg[1]' (FDE) to 'qrs_count_reg[0]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\qrs_count_reg[0] )
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[0]' (FDE) to 'v_refractory_reg[1]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[1]' (FDE) to 'v_refractory_reg[2]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[2]' (FDE) to 'v_refractory_reg[4]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[3]' (FDE) to 'v_refractory_reg[6]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[4]' (FDE) to 'v_refractory_reg[5]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[5]' (FDE) to 'v_refractory_reg[7]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[6]' (FDE) to 'v_max_right_reg[0]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[7]' (FDE) to 'v_refractory_reg[8]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[8]' (FDE) to 'v_refractory_reg[9]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[9]' (FDE) to 'v_refractory_reg[10]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[10]' (FDE) to 'v_refractory_reg[11]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[11]' (FDE) to 'v_refractory_reg[12]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[12]' (FDE) to 'v_refractory_reg[13]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[13]' (FDE) to 'v_refractory_reg[14]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[14]' (FDE) to 'v_refractory_reg[15]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[15]' (FDE) to 'v_refractory_reg[16]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[16]' (FDE) to 'v_refractory_reg[17]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[17]' (FDE) to 'v_refractory_reg[18]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[18]' (FDE) to 'v_refractory_reg[19]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[19]' (FDE) to 'v_refractory_reg[20]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[20]' (FDE) to 'v_refractory_reg[21]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[21]' (FDE) to 'v_refractory_reg[22]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[22]' (FDE) to 'v_refractory_reg[23]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[23]' (FDE) to 'v_refractory_reg[24]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[24]' (FDE) to 'v_refractory_reg[25]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[25]' (FDE) to 'v_refractory_reg[26]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[26]' (FDE) to 'v_refractory_reg[27]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[27]' (FDE) to 'v_refractory_reg[28]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[28]' (FDE) to 'v_refractory_reg[29]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[29]' (FDE) to 'v_refractory_reg[30]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[30]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 'v_refractory_reg[31]' (FDE) to 'v_max_right_reg[31]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[16]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[0]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[0]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[1]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[1]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[2]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[2]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[3]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[3]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[4]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[4]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[5]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[5]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[6]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[6]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[7]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[7]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[8]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[8]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[9]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[9]' (FDE) to 's_offset_reg[16]'
+INFO: [Synth 8-3886] merging instance 'right_end_reg[10]' (FDE) to 'v_max_right_reg[2]'
+INFO: [Synth 8-3886] merging instance 's_offset_reg[10]' (FDE) to 's_offset_reg[16]'
+INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\v_max_right_reg[30] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\dinb_1_reg[15] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (E_b_reg)
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\s_offset_reg[16] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\end_addr_reg[16] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\lossy_start_addr_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\addrb_1_reg[0] )
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[31] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[30] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[29] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[28] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[27] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[26] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[25] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[24] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[23] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[22] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[21] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[20] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[19] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[18] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[17] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[16] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[15] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[14] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[13] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[12] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[11] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[10] driven by constant 0
+WARNING: [Synth 8-3917] design adapLogic__GCB1 has port n_real1_out[9] driven by constant 0
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:18 ; elapsed = 00:00:20 . Memory (MB): peak = 1247.852 ; gain = 676.152
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:06:22 ; elapsed = 00:06:40 . Memory (MB): peak = 1666.215 ; gain = 1094.141
 ---------------------------------------------------------------------------------
- Sort Area is  ARG3_0 : 0 0 : 1937 4128 : Used 1 time 0
- Sort Area is  ARG3_0 : 0 1 : 2191 4128 : Used 1 time 0
+ Sort Area is adapLogic__GCB0 ARG3_0 : 0 0 : 1937 4128 : Used 1 time 0
+ Sort Area is adapLogic__GCB0 ARG3_0 : 0 1 : 2191 4128 : Used 1 time 0
+ Sort Area is hwt__GB5 ARG_2 : 0 0 : 995 995 : Used 1 time 0
+ Sort Area is hwt__GB5 ARG_0 : 0 0 : 929 929 : Used 1 time 0
 ---------------------------------------------------------------------------------
 Start ROM, RAM, DSP, Shift Register and Retiming Reporting
 ---------------------------------------------------------------------------------
 
 DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
-+------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|Module Name | DSP Mapping | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
-+------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
-|adapLogic   | A*B         | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
-|adapLogic   | PCIN-A2*B2  | 16     | 16     | -      | -      | 32     | 1    | 1    | -    | -    | -     | 0    | 0    | 
-+------------+-------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
++------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name | DSP Mapping      | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|hwt         | (D+A)*(B:0x5a82) | 16     | 16     | -      | 16     | 33     | 0    | 0    | -    | 0    | 0     | 0    | 0    | 
+|hwt         | (D-A)*(B:0x5a82) | 16     | 16     | -      | 16     | 33     | 0    | 0    | -    | 0    | 0     | 0    | 0    | 
+|adapLogic   | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|adapLogic   | PCIN-A2*B2       | 16     | 16     | -      | -      | 32     | 1    | 1    | -    | -    | -     | 0    | 0    | 
++------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
 
 Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
 ---------------------------------------------------------------------------------
@@ -199,19 +377,19 @@ Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:26 ; elapsed = 00:00:28 . Memory (MB): peak = 1399.707 ; gain = 828.008
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:06:33 ; elapsed = 00:06:51 . Memory (MB): peak = 1847.098 ; gain = 1275.023
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:26 ; elapsed = 00:00:29 . Memory (MB): peak = 1400.820 ; gain = 829.121
+Finished Timing Optimization : Time (s): cpu = 00:06:37 ; elapsed = 00:06:55 . Memory (MB): peak = 1939.723 ; gain = 1367.648
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:26 ; elapsed = 00:00:29 . Memory (MB): peak = 1419.891 ; gain = 848.191
+Finished Technology Mapping : Time (s): cpu = 00:06:55 ; elapsed = 00:07:15 . Memory (MB): peak = 1974.828 ; gain = 1402.754
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -228,6 +406,38 @@ Start Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[15]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[14]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[13]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[12]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[11]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[10]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[9]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[8]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[7]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[6]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[5]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[4]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[3]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[2]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[1]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dina[0]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[15]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[14]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[13]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[12]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[11]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[10]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[9]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[8]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[7]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[6]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[5]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[4]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[3]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[2]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[1]
+CRITICAL WARNING: [Synth 8-4442] BlackBox module \lossy_compressor/ram  has unconnected pin dinb[0]
 CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[15]
 CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[14]
 CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[13]
@@ -245,37 +455,37 @@ CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[2]
 CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[1]
 CRITICAL WARNING: [Synth 8-4442] BlackBox module ram has unconnected pin dina[0]
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished IO Insertion : Time (s): cpu = 00:07:01 ; elapsed = 00:07:21 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Renaming Generated Instances : Time (s): cpu = 00:07:01 ; elapsed = 00:07:21 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:07:01 ; elapsed = 00:07:22 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Renaming Generated Ports : Time (s): cpu = 00:07:01 ; elapsed = 00:07:22 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Handling Custom Attributes : Time (s): cpu = 00:07:01 ; elapsed = 00:07:22 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Renaming Generated Nets : Time (s): cpu = 00:07:01 ; elapsed = 00:07:22 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -294,53 +504,54 @@ Report BlackBoxes:
 +------+--------------+----------+
 |      |BlackBox name |Instances |
 +------+--------------+----------+
-|1     |bram_ecg      |         1|
+|1     |bram_ecg      |         2|
 +------+--------------+----------+
 
 Report Cell Usage: 
 +------+--------------+------+
 |      |Cell          |Count |
 +------+--------------+------+
-|1     |bram_ecg_bbox |     1|
-|2     |BUFG          |     1|
-|3     |CARRY4        |   110|
-|4     |DSP48E1       |     2|
-|6     |LUT1          |   134|
-|7     |LUT2          |   268|
-|8     |LUT3          |    61|
-|9     |LUT4          |    52|
-|10    |LUT5          |    31|
-|11    |LUT6          |   180|
-|12    |MUXF7         |    64|
-|13    |MUXF8         |    32|
-|14    |FDRE          |   739|
-|15    |IBUF          |     2|
-|16    |OBUF          |    34|
+|1     |bram_ecg_bbox |     2|
+|3     |BUFG          |     1|
+|4     |CARRY4        |   157|
+|5     |DSP48E1       |     2|
+|7     |LUT1          |   126|
+|8     |LUT2          |   350|
+|9     |LUT3          |   145|
+|10    |LUT4          |    94|
+|11    |LUT5          |    51|
+|12    |LUT6          |   194|
+|13    |MUXF7         |    62|
+|14    |MUXF8         |    31|
+|15    |FDRE          |   909|
+|16    |FDSE          |    12|
+|17    |IBUF          |     2|
+|18    |OBUF          |    34|
 +------+--------------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:29 ; elapsed = 00:00:32 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Finished Writing Synthesis Report : Time (s): cpu = 00:07:01 ; elapsed = 00:07:22 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 17 critical warnings and 1 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:22 ; elapsed = 00:00:30 . Memory (MB): peak = 1624.953 ; gain = 960.738
-Synthesis Optimization Complete : Time (s): cpu = 00:00:30 ; elapsed = 00:00:33 . Memory (MB): peak = 1624.953 ; gain = 1053.254
+Synthesis finished with 0 errors, 48 critical warnings and 26 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:06:34 ; elapsed = 00:07:11 . Memory (MB): peak = 1995.531 ; gain = 1245.406
+Synthesis Optimization Complete : Time (s): cpu = 00:07:01 ; elapsed = 00:07:23 . Memory (MB): peak = 1995.531 ; gain = 1423.457
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.010 . Memory (MB): peak = 1626.855 ; gain = 0.000
-INFO: [Netlist 29-17] Analyzing 208 Unisim elements for replacement
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.015 . Memory (MB): peak = 2004.586 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 252 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
-WARNING: [Netlist 29-101] Netlist 'adapLogic' is not ideal for floorplanning, since the cellview 'adapLogic' contains a large number of primitives.  Please consider enabling hierarchy in synthesis if you want to do floorplanning.
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1629.176 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2008.270 ; gain = 0.000
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Synth Design complete | Checksum: d4aabefe
+Synth Design complete | Checksum: 10baa782
 INFO: [Common 17-83] Releasing license: Synthesis
-23 Infos, 3 Warnings, 17 Critical Warnings and 0 Errors encountered.
+148 Infos, 31 Warnings, 48 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:34 ; elapsed = 00:00:39 . Memory (MB): peak = 1629.176 ; gain = 1272.613
+synth_design: Time (s): cpu = 00:07:05 ; elapsed = 00:07:29 . Memory (MB): peak = 2008.270 ; gain = 1651.266
 INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
-Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.010 . Memory (MB): peak = 1629.176 ; gain = 0.000
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.011 . Memory (MB): peak = 2008.270 ; gain = 0.000
 INFO: [Common 17-1381] The checkpoint 'C:/Users/elina/CapstoneVHDL/ECG_Compression/ECG_Compression.runs/synth_1/adapLogic.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 2008.270 ; gain = 0.000
 INFO: [Vivado 12-24828] Executing command : report_utilization -file adapLogic_utilization_synth.rpt -pb adapLogic_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Tue Mar 17 23:12:49 2026...
+INFO: [Common 17-206] Exiting Vivado at Mon Mar 23 15:54:02 2026...

@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "work" -L "secureip" -L "xpm" --snapshot "adapLogic_tb_behav" "xil_defaultlib.adapLogic_tb" -log "elaborate.log" 
