@@ -64,7 +64,7 @@ COMPONENT bram_ecg IS
              ecg_samples : in dataStore;
              real_samples : in integer;
             coeff_array_valid: out std_logic;
-            coeff: out halfDataStore);
+            coeff: out dataStore);
     end component hwt;
 
     -- bandpass filter 
@@ -112,9 +112,8 @@ COMPONENT bram_ecg IS
             m_idx := 0;
         end if;
         
-        m_sum:= shift_right(m_sum, 4);
-        m_a:= resize(m_sum,32);
-        result.avg := m_a;
+       
+        result.avg := resize(shift_right(m_sum, 4),32);
         result.buf := m_buffer;
         result.idx := m_idx;
         result.sum := m_sum;
@@ -137,7 +136,7 @@ COMPONENT bram_ecg IS
     signal n_real : integer := 0 ;
     signal is_partial  : std_logic := '0' ;
     -- state machine for k estimation
-    type state_type is (IDLE, READY, COMPUTE, QRS, SEG_HWT_START, LOAD_BLOCK, WAIT_HWT, NEXT_BLOCK,DONE);
+    type state_type is (IDLE, READY, SEG_WAIT, COMPUTE, QRS, SEG_HWT_START, LOAD_BLOCK, WAIT_HWT, NEXT_BLOCK,DONE);
     signal state: state_type := IDLE;
     
     -- non qrs samples
@@ -150,7 +149,7 @@ COMPONENT bram_ecg IS
     signal hwt_start : std_logic := '0';
     signal coeff_valid: std_logic := '0';
     signal lossy_block: dataStore;
-    signal coeff_array: halfDataStore;
+    signal coeff_array: dataStore;
     
 begin
     ram: bram_ecg port map(clka=>Clock,
@@ -219,6 +218,9 @@ begin
     variable v_block_size :integer := 0;
     variable v_lossy_start :integer := 0;
     variable v_lossy_end :integer := 0;
+    variable v_block_count : integer := 0;
+    variable v_full_blocks : integer := 0;
+    variable v_remainder :integer range 0 to 255 := 0;
     
     begin
     if rising_edge(Clock) then
@@ -272,6 +274,7 @@ begin
                      lossy_block <= (others =>(others => '0'));
                      lossy_block_data := (others =>(others => '0'));
                      
+                     
                      if start = '1' then  
                         read_addr:= (others => '0');
                         state <= READY;
@@ -291,6 +294,7 @@ begin
                     end if;
 
             when COMPUTE =>
+                --state <= QRS;  -- delete
                 if read_addr <= 131072 then
                     E <= '1';
                     addra_1 <= std_logic_vector(read_addr);
@@ -325,7 +329,7 @@ begin
                 v_sum := v_result.sum;
                 
                 --threshold and peak detection
-                v_threshold := shift_right(v_smooth - v_threshold,7);
+                v_threshold := v_threshold + shift_right(v_smooth - v_threshold,7);
                 v_peak := '0';
                 
                 if v_refcount > 0 then
@@ -339,6 +343,23 @@ begin
                 
                 if v_peak = '1' then
                     state <= QRS;
+                    
+                -- compress final non-QRS segment
+                elsif cycle_count >= 131072 + 4 then
+                    
+                    v_lossy_start := s_offset - 2; -- -2 for zero indexing and to avoid final S sample
+                    v_lossy_end := 131072; -- last address
+                    
+                -- guard from negatives
+                if v_lossy_end > v_lossy_start then
+                    lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17)); -- -2 for zero indexing and to avoid final S sample
+                    lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
+                    n_samples := std_logic_vector(to_unsigned(v_lossy_end - v_lossy_start,17));
+                    state <= SEG_HWT_START;
+                else
+                    state <= DONE; 
+                end if;
+            
                 end if;
                     
          when QRS =>
@@ -351,9 +372,9 @@ begin
             end if;
             
             if qrs_idx + v_max_right < max_idx then
-                left_start := qrs_idx + v_max_right ;
+                right_end := qrs_idx + v_max_right ;
             else 
-                left_start:= max_idx;
+                right_end:= max_idx;
             end if; 
             
             -- store past indices of Q and S
@@ -363,8 +384,8 @@ begin
             q_onset:= left_start;
             s_offset := right_end;
             
-            start_addr <= std_logic_vector(to_unsigned(q_onset - 1,17)); -- zero indexing
-            end_addr <= std_logic_vector(to_unsigned(s_offset - 1,17));
+            start_addr <= std_logic_vector(to_unsigned(q_onset ,17)); -- zero indexing
+            end_addr <= std_logic_vector(to_unsigned(s_offset ,17));
             -- n_samples:= to_integer(start_addr - end_addr);
             
             
@@ -375,25 +396,51 @@ begin
             -- if begining send first sample to Q to this state and not q onset is not addr o
             if qrs_count = 0 then
                 v_lossy_start := 0;
-                v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
                 
+                if q_onset > 2 then
+                    v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
+                else
+                    v_lossy_end := 0;
+                end if;
             
             -- if end -- s detected is less than 256 from , check if there is another r peak last index
             elsif cycle_count >= 131072  + 4 and (s_offset /= 131072 ) then
-                v_lossy_start := s_offset - 2; -- -2 for zero indexing and to avoid final S sample
+                if s_offset > 2 then 
+                    v_lossy_start := s_offset - 2; -- -2 for zero indexing and to avoid final S sample
+                else
+                    v_lossy_start := 0;
+                end if;
                 v_lossy_end := 131072; -- last address
                 
                 
             -- if middle send past s index and current q
             else
-                v_lossy_start := s_offseto -2 ;
-                v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
+                if s_offseto > 2 then
+                    v_lossy_start := s_offseto -2 ;
+                else
+                    v_lossy_start:= 0;
+                end if;
                 
+                if q_onset > 2 then
+                    v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
+                else
+                    v_lossy_end:= 0;
+                end if;
             end if;
             
             lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17)); -- -2 for zero indexing and to avoid final S sample
             lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
-            n_samples := std_logic_vector(to_unsigned(v_lossy_end - v_lossy_start,17));
+            
+            --v_lossy_start := 0;
+             --v_lossy_end   := 37;
+             --lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17));
+             --lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
+            -- guard from negatives
+            if v_lossy_end > v_lossy_start then
+                n_samples := std_logic_vector(to_unsigned(v_lossy_end - v_lossy_start,17));
+            else
+                n_samples := (others => '0');
+            end if;
             qrs_count := qrs_count + 1;
             state <= SEG_HWT_START;
             
@@ -401,6 +448,10 @@ begin
                 full_blocks <= to_integer(unsigned(n_samples(15 downto 8)));
                 remainder <= to_integer(unsigned(n_samples(7 downto 0)));
                 block_count <= 0;
+                v_block_count := 0;
+                v_full_blocks := to_integer(unsigned(n_samples(15 downto 8)));
+                v_remainder := to_integer(unsigned(n_samples(7 downto 0)));
+                lossy_block_data := (others => (others => '0'));
                 acc_count := 0;
                 state <= LOAD_BLOCK;
             
@@ -408,59 +459,87 @@ begin
                 E_b <= '1';
                 
                 -- determine block actual size
-                if block_count < full_blocks then
+                if v_block_count < v_full_blocks then
                     v_block_size:= 256;
                 else
-                    v_block_size := remainder;
+                    v_block_size := v_remainder;
                 end if;
                 
                 -- make sure it is within non qrs and don't waste memory access
-                if acc_count < to_integer(unsigned(n_samples)) then 
-                    addrb_1 <= std_logic_vector(signed(lossy_start_addr) + to_signed(block_count*256 + acc_count,17));
+                if acc_count < (v_lossy_end - v_lossy_start) then -- to_integer(unsigned(n_samples)) 
+                    addrb_1 <= std_logic_vector(signed(lossy_start_addr) + to_signed(v_block_count*256 + acc_count,17));
                     
                  end if;   
                  
                 --load data into hwt block if it was within non QRS start and end
-                if acc_count >= 2 then
-                    lossy_block_data(acc_count - 2):= signed(doutb_1);
+                if acc_count >= 4 and acc_count < v_block_size + 4 then -- changed to 3
+                    
+                    lossy_block_data(acc_count - 4):= signed(doutb_1);
+                    
+                     -- lossy_block_data(acc_count - 2) := to_signed(1000,16);
+                    
                 end if;
                 
                 -- on the last iteration to fill the block set these variables
-                if acc_count >= v_block_size + 2 then
+                if acc_count >= v_block_size + 4 then  -- changed to 3
                         
-                        if block_count = full_blocks then
+                        report "Pre-HWT: lossy_block_data(37)=" & 
+                               integer'image(to_integer(lossy_block_data(37))) &
+                               " (38)=" & integer'image(to_integer(lossy_block_data(38))) &
+                               " (39)=" & integer'image(to_integer(lossy_block_data(39)))
+                        severity note;
+                        if v_block_count = v_full_blocks then
                             is_partial <= '1';
                         else
                             is_partial <= '0';
                         end if; 
-                        n_real <= v_block_size;
+                        
+                        if v_block_size > 0 then
+                            n_real <= v_block_size;
                         -- is_partial <= '1' if block_count = full_blocks else '0';
                         lossy_block <= lossy_block_data;
-                        hwt_start <= '1';
-                        state <= WAIT_HWT;
+                        
+                        acc_count := 0;
+                        state <= SEG_WAIT; --WAIT_HWT;
+                        else 
+                        acc_count := 0;
+                        state <= NEXT_BLOCK;
+                        end if;
                      
                  end if;
                 acc_count := acc_count + 1;
                 
-            
+            when SEG_WAIT =>
+                hwt_start <= '1';
+                state <= WAIT_HWT;
+                
             when WAIT_HWT =>
                 
+                hwt_start <= '0';
+                
+                --report "WAIT_HWT: coeff_valid=" & std_logic'image(coeff_valid) &
+           --" hwt_start was cleared"
+    --severity note;
                 if coeff_valid = '1' then
                     -- send it to packetizer 
                     
                     -- go to the next detected block
+                    
                     state <= NEXT_BLOCK;
                    
                  end if;
                  
             when NEXT_BLOCK =>
-                if block_count < full_blocks then 
+                lossy_block_data := (others =>(others => '0'));
+                if v_block_count < v_full_blocks then 
+                    v_block_count := v_block_count + 1;
                     block_count <= block_count + 1;
                     state <= LOAD_BLOCK;
                     
                 -- process last block    
-                elsif remainder > 0 and is_partial = '0' then
-                    block_count <= full_blocks;
+                elsif v_remainder > 0 and is_partial = '0' then
+                    v_block_count := v_full_blocks;
+                     block_count <= full_blocks;
                     state <= LOAD_BLOCK;
                 else
                     if cycle_count >= 131072  + 4 then

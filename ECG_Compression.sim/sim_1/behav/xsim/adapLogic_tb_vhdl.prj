@@ -1,6 +1,5 @@
 # compile vhdl design source files
 vhdl xil_defaultlib  \
-"../../../../ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg_sim_netlist.vhdl" \
 "../../../../ECG_Compression.srcs/sources_1/new/losslessComp.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/types_pkg.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/hwt.vhd" \
@@ -27,6 +26,8 @@ vhdl xil_defaultlib  \
 "../../../../ECG_Compression.srcs/sources_1/new/golomb_correct.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/kEstimator2.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/adapLogic.vhd" \
+"../../../../ECG_Compression.srcs/sources_1/new/hwt_original.vhd" \
+"../../../../ECG_Compression.gen/sources_1/ip/bram_ecg/bram_ecg_sim_netlist.vhdl" \
 "../../../../ECG_Compression.srcs/sim_1/new/hwt_tb.vhd" \
 "../../../../ECG_Compression.srcs/sim_1/new/kEstimator_tb.vhd" \
 "../../../../ECG_Compression.srcs/sim_1/new/golmbRice_tb.vhd" \
@@ -43,6 +44,7 @@ vhdl xil_defaultlib  \
 "../../../../ECG_Compression.srcs/sim_1/new/bram_test_tb.vhd" \
 "../../../../ECG_Compression.srcs/sim_1/new/bram_test_tb2.vhd" \
 "../../../../ECG_Compression.srcs/sim_1/new/adapLogic_tb.vhd" \
+"../../../../ECG_Compression.srcs/sim_1/new/hwt2_tb.vhd" \
 
 # Do not sort compile order
 nosort
