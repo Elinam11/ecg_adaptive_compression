@@ -32,17 +32,17 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity losslessComp is
-  Port ( Counter: in integer;
+  Port ( Counter: in std_logic;
          Clock: in std_logic; 
-         addr_start : in std_logic_vector(16 DOWNTO 0);
+         raw_samples : in output_lssarray;
          K_ready: out std_logic; 
          K: out integer range 0  to 15;
          total_bits : out integer; -- gc
          samples_done : out integer;
          compression_done: out std_logic;
          encoded_array: out output_array;
-         encoded_array_valid: out std_logic; --gc
-         M_errors: out output_array);
+         encoded_array_valid: out std_logic --gc
+         );
 end losslessComp;
 
 architecture Behavioral of losslessComp is
@@ -101,7 +101,6 @@ end function;
     variable pa_K : integer range 0 to 15  :=0;
         begin
         pa_K := k;
-        
         case k is
         when 0 =>
             encoded_val := shift_left(resize(vM_n,32 ), (1 ))(15 downto (1 )) & to_unsigned(0,1);
@@ -139,7 +138,10 @@ end function;
         return encoded_val;
     end function;
                 
-                
+-- for k estimation average
+constant RECIP_72 : unsigned  (15 downto 0) := x"038E";  -- 910 in hex
+signal M_errors: output_larray;
+    
 -- BRAM signals A 
 signal  dina_1, douta_1 : std_logic_vector (15 downto 0);
 signal wea_1: std_logic_vector(0 DOWNTO 0):= "0";
@@ -179,6 +181,7 @@ signal samples_done_reg : integer := 0;
 signal comp_done : std_logic := '0';
     
 signal valid_pipe: std_logic_vector(2 downto 0):= (others => '0');
+
 
 begin
     ram: bram_ecg port map(clka=>Clock,
@@ -221,10 +224,12 @@ begin
         variable v_current : signed(15 downto 0);
         variable v_predicted : signed(15 downto 0);
         variable v_error : signed(16 downto 0);
-        variable M_n_errors: output_array:=(others => (others => '0'));
+        variable M_n_errors: output_larray:=(others => (others => '0'));
         variable sample_index : integer := 0; 
         variable encoded_val : unsigned(15 downto 0);
-        variable encoded_array_var : output_array := (others => (others => '0'));
+        variable encoded_array_var : output_larray := (others => (others => '0'));
+        variable product_temp : unsigned (41 downto 0); 
+        variable qrs_samples : output_lssarray := (others => (others => '0'));
         
         begin
         
@@ -243,19 +248,19 @@ begin
                      cycle_count:= 0;
                      sum_abs_errors := (others => '0');
                      valid_pipe <= (others => '0');
-                     
+                     qrs_samples :=  (others =>(others => '0')) ;
                      
                      -- golomb rice 
                      total_bits_reg <= 0;
                      samples_done_reg  <= 0;
                      sample_index := 0;  -- RESET
-                     for i in 0 to 1023 loop
+                     for i in 0 to 71 loop
                         encoded_array_var(i) := (others => '0');
                      end loop;
                      encoded_array_valid <= '0';
                      
-                     if Counter = 0 then  
-                        read_addr:= unsigned(addr_start);
+                     if Counter = '1' then  
+                        -- read_addr:= unsigned(addr_start);       !!!!!!!!!!!!!
                         state <= READY;
                      end if;
                 
@@ -267,23 +272,27 @@ begin
                     read_addr := read_addr + 1;
                     cycle_count := cycle_count + 1;
                     
+                    for i in 0 to 255 loop
+                    qrs_samples(i) := raw_samples(i);
+                    end loop;
+                    
                     -- Just fill BRAM pipeline (2 cycles)
-                    if cycle_count >= 3 then
-                        state <= COMPUTE;
-                    end if;
+                    
+                    state <= COMPUTE;
+                    
 
             when COMPUTE =>
                 -- Read continuously
-                if read_addr <= 1023 then
-                    E <= '1';
-                    addra_1 <= std_logic_vector(read_addr);
-                    read_addr := read_addr + 1;
-                else
-                    E <= '0';
-                end if;
+                --if read_addr <= 1023 then
+                --    E <= '1';
+                --    addra_1 <= std_logic_vector(read_addr);
+                --    read_addr := read_addr + 1;
+                --else
+                --    E <= '0';
+                --end if;
                 
                 -- Process current data (always valid after READY)
-                v_current := signed(douta_1);
+                v_current := qrs_samples(to_integer(write_count));
                 
                 -- first 2 errors are raw samples since buffer is not full for computation
                 if write_count < 2 then
@@ -293,13 +302,16 @@ begin
                     report "=== CHECK ===" severity note;
                     report "ERROR1: " & integer'image(to_integer(v_M_n_pos)) severity note;
                 else
+                
                 -- 2nd order linear predictor
-                    v_sampleShifted := shift_left(signed(temp_buffer(1)), 1);
-                    v_predictedO := v_sampleShifted - signed(temp_buffer(0));
-                    v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
-                    v_M_n_pos := pos_value(v_M_n);
-                    temp_buffer(0) <= temp_buffer(1);
-                    temp_buffer(1) <= std_logic_vector(v_current);
+                v_sampleShifted := shift_left(signed(temp_buffer(1)), 1);
+                v_predictedO := v_sampleShifted - signed(temp_buffer(0));
+                v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
+                v_M_n_pos := pos_value(v_M_n);
+                temp_buffer(0) <= temp_buffer(1);
+                temp_buffer(1) <= std_logic_vector(v_current);
+                    
+                    
                 end if;
                 
                 M_n_errors(to_integer(write_count)):= v_M_n_pos;
@@ -309,7 +321,7 @@ begin
                 write_count := write_count + 1;
                 
                 -- errors are computed for current window
-                if write_count >= 1024 then
+                if write_count >= 72 then
                     M_errors <= M_n_errors;
                     state <= ACCUMULATE;
                 end if;
@@ -327,10 +339,12 @@ begin
                     report "Sum (decimal): " & integer'image(to_integer(sum_abs_errors)) severity note;
                    
                     -- take average
-                    if cycle_count >= 1055 then
+                    if cycle_count >= 103 then   -- check if 1055
                     report "Avg (decimal): " & integer'image(to_integer(avg)) severity note;
                         sum_sig <= sum_abs_errors;
-                        avg <= shift_right(sum_abs_errors, 10);
+                        --avg <= shift_right(sum_abs_errors, 10);
+                        product_temp := sum_abs_errors * RECIP_72 ;
+                        avg <= product_temp(41 downto 16);
                         state <= GOLOMB_R;
                     end if;
  
@@ -350,7 +364,7 @@ begin
                 
                 --encodedE <= encoded_val;
                 
-                if sample_index < 1024 then
+                if sample_index < 72 then
                 encoded_array_var(sample_index) := encoded_val;
                 end if;
                 
@@ -373,7 +387,7 @@ begin
                 -- store error
         
                 -- put in function to say unless 123
-                if encode_count = 1023 then
+                if encode_count = 71 then
                     -- send in next k function by seting counter in component
                     Counter_var := 0 ;
                     state <= DONE;
@@ -389,7 +403,7 @@ begin
                     web_1 <= "0";
                     comp_done <= '1';
                     
-                    if Counter /= 0 then
+                    if Counter = '0' then
                         state <= IDLE;
                     end if;
          end case;

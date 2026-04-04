@@ -22,6 +22,8 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use work.types_pkg.all;
 use IEEE.NUMERIC_STD.ALL;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 
 entity hwt is
   Port ( Clk: in std_logic;
@@ -117,7 +119,7 @@ architecture Behavioral of hwt is
     -- compression tracking
     signal total_bits_reg    : integer := 0;
     signal samples_done_reg  : integer := 0;
-
+    
 begin
 
     process(Clk)
@@ -186,15 +188,7 @@ begin
             buffer_arr  := (others => (others => '0'));
             real_approx_coeffs := (real_samples + 15) / 16;
             
-            report "READY check padding: ecg(37)=" & 
-           integer'image(to_integer(ecg_samples(37))) &
-           " ecg(38)=" & integer'image(to_integer(ecg_samples(38))) &
-           " ecg(100)=" & integer'image(to_integer(ecg_samples(100)))
-    severity note;
-    
-            report "READY: real_samples=" & integer'image(real_samples) &
-       "  real_approx_coeffs=" & integer'image(real_approx_coeffs)
-severity note;
+            
 
             -- PROBE: snapshot first and last loaded values
             probe_loaded_0    <= local_arr(0);
@@ -206,12 +200,12 @@ severity note;
             end if;
             probe_real_coeffs <= real_coeffs;
 
-            report "READY: real_samples=" & integer'image(real_samples) &
-                   "  real_coeffs=" & integer'image(real_coeffs) &
-                   "  local_arr(0)=" & integer'image(to_integer(local_arr(0))) &
-                   "  local_arr(1)=" & integer'image(to_integer(local_arr(1))) &
-                   "  local_arr(2)=" & integer'image(to_integer(local_arr(2)))
-            severity note;
+            --report "READY: real_samples=" & integer'image(real_samples) &
+            --       "  real_coeffs=" & integer'image(real_coeffs) &
+            --       "  local_arr(0)=" & integer'image(to_integer(local_arr(0))) &
+            --       "  local_arr(1)=" & integer'image(to_integer(local_arr(1))) &
+            --       "  local_arr(2)=" & integer'image(to_integer(local_arr(2)))
+            --severity note;
 
             state <= COMPUTE;
 
@@ -220,20 +214,13 @@ severity note;
             if level_count = 0 and process_idx = 0 then
     a := local_arr(0);
     b := local_arr(1);
-    report "ACTUAL a=" & integer'image(to_integer(a)) &
-           " b=" & integer'image(to_integer(b))
-    severity note;
+    --report "ACTUAL a=" & integer'image(to_integer(a)) &
+    --       " b=" & integer'image(to_integer(b))
+    --severity note;
 end if;
 
             if level_count = 0 and process_idx = 0 then
-        report "COMPUTE first entry:" &
-               " local(0)=" & integer'image(to_integer(local_arr(0))) &
-               " local(1)=" & integer'image(to_integer(local_arr(1))) &
-               " local(2)=" & integer'image(to_integer(local_arr(2))) &
-               " local(3)=" & integer'image(to_integer(local_arr(3))) &
-               " local(4)=" & integer'image(to_integer(local_arr(4))) &
-               " local(5)=" & integer'image(to_integer(local_arr(5)))
-        severity note;
+        
     end if;
     
         if process_idx < 4 and level_count = 0 then
@@ -256,6 +243,7 @@ end if;
 
                 if process_idx < half then
                     -- FIXED: 2*process_idx not 2+process_idx
+                    
                     a := local_arr(2 * process_idx);
                     b := local_arr(2 * process_idx + 1);
 
@@ -289,23 +277,18 @@ end if;
                             probe_after_lvl0_1 <= local_arr(1);
                             probe_after_lvl0_2 <= local_arr(2);
                             probe_after_lvl0_3 <= local_arr(3);
-                            report "Level 0 done: local_arr(0)=" &
-                                   integer'image(to_integer(local_arr(0))) &
-                                   " (1)=" & integer'image(to_integer(local_arr(1))) &
-                                   " (2)=" & integer'image(to_integer(local_arr(2))) &
-                                   " (3)=" & integer'image(to_integer(local_arr(3)))
-                            severity note;
+                            --report "Level 0 done: local_arr(0)=" &
+                            --       integer'image(to_integer(local_arr(0))) &
+                            --       " (1)=" & integer'image(to_integer(local_arr(1))) &
+                            --       " (2)=" & integer'image(to_integer(local_arr(2))) &
+                            --       " (3)=" & integer'image(to_integer(local_arr(3)))
+                            --severity note;
                         when 1 =>
                             probe_after_lvl1_0 <= local_arr(0);
                             probe_after_lvl1_1 <= local_arr(1);
                             probe_after_lvl1_2 <= local_arr(2);
                             probe_after_lvl1_3 <= local_arr(3);
-                            report "Level 1 done: local_arr(0)=" &
-                                   integer'image(to_integer(local_arr(0))) &
-                                   " (1)=" & integer'image(to_integer(local_arr(1))) &
-                                   " (2)=" & integer'image(to_integer(local_arr(2))) &
-                                   " (3)=" & integer'image(to_integer(local_arr(3)))
-                            severity note;
+                            
                         when 2 =>
                             probe_after_lvl2_0 <= local_arr(0);
                             probe_after_lvl2_1 <= local_arr(1);
@@ -419,23 +402,39 @@ end if;
     end if;
 
         -- ----------------------------------------------------------------
-        when DONE =>
-            coeff_array_valid <= '1';
-            total_bits_reg    <= total_bits_used;
-            coeff             <= buffer_arr;
-            --state <= IDLE;
-            state <= WAIT_ACK;
-            -- PROBE: final output
-            probe_coeff_0 <= buffer_arr(0);
-            probe_coeff_1 <= buffer_arr(1);
-            probe_coeff_2 <= buffer_arr(2);
-            probe_coeff_3 <= buffer_arr(3);
+        --uncomment
+        --when DONE =>
+          --  coeff_array_valid <= '1';
+          --  total_bits_reg    <= total_bits_used;
+          --  coeff             <= buffer_arr;
+          --  state <= IDLE;
+          --  state <= WAIT_ACK;
+             --PROBE: final output
+          --  probe_coeff_0 <= buffer_arr(0);
+          --  probe_coeff_1 <= buffer_arr(1);
+          --  probe_coeff_2 <= buffer_arr(2);
+          --  probe_coeff_3 <= buffer_arr(3);
 
-            ---report "DONE: coeff(0)=" & integer'image(to_integer(buffer_arr(0))) &
-                        ---       "  coeff(1)=" & integer'image(to_integer(buffer_arr(1))) &
-                        ---       "  coeff(2)=" & integer'image(to_integer(buffer_arr(2))) &
-                        ---       "  coeff(3)=" & integer'image(to_integer(buffer_arr(3)))
-                        ---severity note;
+
+        when DONE =>
+    coeff_array_valid <= '1';
+    total_bits_reg    <= total_bits_used;
+    coeff             <= buffer_arr;
+    state             <= WAIT_ACK;
+
+    -- dump nonzero coefficients to transcript
+    report "SEG_START," & integer'image(total_bits_used) & "," & integer'image(real_coeffs)
+    severity note;
+    
+    for i in 0 to 255 loop
+        if buffer_arr(i) /= 0 then
+            report "COEFF," & integer'image(i) & "," & integer'image(to_integer(buffer_arr(i)))
+            severity note;
+        end if;
+    end loop;
+    
+    report "SEG_END"
+    severity note;
 
        when WAIT_ACK =>
        coeff_array_valid <= '1';

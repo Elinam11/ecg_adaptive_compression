@@ -25,6 +25,8 @@ use work.types_pkg.all;
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -67,9 +69,24 @@ COMPONENT bram_ecg IS
             coeff: out dataStore);
     end component hwt;
 
-    -- bandpass filter 
+    component losslessComp is
+    Port ( Counter: in std_logic ;
+         Clock: in std_logic; 
+         raw_samples : in output_larray;
+         K_ready: out std_logic; 
+         K: out integer range 0  to 15;
+         total_bits : out integer; -- gc
+         samples_done : out integer;
+         compression_done: out std_logic;
+         encoded_array: out output_larray;
+         encoded_array_valid: out std_logic);
+    end component losslessComp;
+
     -- first-order low-pass IIR filter to smooth signal and remove low freq noise with
     -- high pass filter to remove baseline drift
+    
+    -- bandpass filter 
+    
     function bandPass (sample: signed; hp: signed ; lp: signed) return valStore is 
     variable low_pass : signed(15 downto 0) := lp;
     variable high_pass : signed(15 downto 0) := hp;
@@ -120,6 +137,31 @@ COMPONENT bram_ecg IS
         return result;
     end function;
     
+ shared variable seg_file_count : integer := 0;
+procedure write_coeffs_to_file (
+    buf           : in dataStore;
+    n_real_coeffs : in integer
+) is
+    file     out_file  : text;
+    variable out_line  : line;
+    variable filename  : string(1 to 32);
+    variable seg_str   : string(1 to 4);
+    variable num       : integer;
+begin
+    -- build filename like "seg_0000.txt", "seg_0001.txt" etc
+    num := seg_file_count;
+    seg_file_count := seg_file_count + 1;
+
+    -- write_mode on a fresh file every time - no append needed
+    if    num < 10    then file_open(out_file, "seg_000" & integer'image(num) & ".txt", write_mode);
+    elsif num < 100   then file_open(out_file, "seg_00"  & integer'image(num) & ".txt", write_mode);
+    elsif num < 1000  then file_open(out_file, "seg_0"   & integer'image(num) & ".txt", write_mode);
+    else                   file_open(out_file, "seg_"    & integer'image(num) & ".txt", write_mode);
+    end if;
+
+    write(out_line, string'("SEG,"));
+    end procedure;
+    
         -- BRAM signals A 
     signal  dina_1, douta_1 : std_logic_vector (15 downto 0);
     signal wea_1: std_logic_vector(0 DOWNTO 0):= "0";
@@ -132,11 +174,22 @@ COMPONENT bram_ecg IS
     signal addrb_1: STD_LOGIC_VECTOR (16 downto 0):=(others => '0');
     signal  E_b: std_logic:= '0';
     
+    --lossless comp
+    signal qrs_samples : output_larray;
+    signal counter_lss : std_logic := '0' ;
+    signal encoded_lss_valid : std_logic := '0' ;
+    signal comp_done : std_logic := '0' ;
+    signal lossless_bits: integer := 0;
+    signal qrs_samples_dn : integer := 0;
+    signal ready_k : std_logic := '0' ;
+    signal k_estm : integer := 0;
+    signal encoded_lss: output_larray;
+    
     -- hwt compression
     signal n_real : integer := 0 ;
     signal is_partial  : std_logic := '0' ;
     -- state machine for k estimation
-    type state_type is (IDLE, READY, SEG_WAIT, COMPUTE, QRS, SEG_HWT_START, LOAD_BLOCK, WAIT_HWT, NEXT_BLOCK,DONE);
+    type state_type is (IDLE, READY, SEG_WAIT, COMPUTE, QRS, SEG_PRED_START, LOAD_QRS, PREDICTOR_WAIT, SEG_HWT_START, LOAD_BLOCK, WAIT_HWT, NEXT_BLOCK,DONE);
     signal state: state_type := IDLE;
     
     -- non qrs samples
@@ -146,11 +199,14 @@ COMPONENT bram_ecg IS
     signal remainder :integer range 0 to 255 := 0;
     signal lossy_start_addr : std_logic_vector(16 downto 0):= (others => '0');
     signal lossy_end_addr : std_logic_vector(16 downto 0):= (others => '0');
+    signal lossless_start_addr : std_logic_vector(16 downto 0):= (others => '0');
+    signal lossless_end_addr : std_logic_vector(16 downto 0):= (others => '0');
     signal hwt_start : std_logic := '0';
     signal coeff_valid: std_logic := '0';
     signal lossy_block: dataStore;
     signal coeff_array: dataStore;
-    
+    signal route_lossless:std_logic;
+    signal route_lossy: std_logic;
 begin
     ram: bram_ecg port map(clka=>Clock,
                         wea => wea_1,
@@ -171,6 +227,20 @@ begin
                                      real_samples => n_real,
                                     coeff_array_valid => coeff_valid,
                                     coeff => coeff_array);
+                                    
+    lossless_compressor : losslessComp port map ( Counter => counter_lss,
+                                     Clock => Clock,
+                                     raw_samples  => qrs_samples,
+                                     K_ready => ready_k,
+                                     K => k_estm,
+                                     total_bits => lossless_bits,
+                                     samples_done => qrs_samples_dn,
+                                     compression_done => comp_done,
+                                     encoded_array => encoded_lss,
+                                     encoded_array_valid => encoded_lss_valid );
+   
+
+                                    
     process(Clock)
     variable stored_values: valStore;
     variable vsample : signed(15 downto 0) ;
@@ -202,6 +272,7 @@ begin
     variable v_max_left: integer;
     variable v_max_right: integer;
     variable qrs_idx: integer;
+    variable sample_idx: integer;
     variable left_start: integer;
     variable right_end: integer;
     variable q_onset: integer;
@@ -220,7 +291,15 @@ begin
     variable v_lossy_end :integer := 0;
     variable v_block_count : integer := 0;
     variable v_full_blocks : integer := 0;
-    variable v_remainder :integer range 0 to 255 := 0;
+    variable v_remainder : integer := 0;
+    variable vsample_input : signed(15 downto 0)  := (others => '0'); 
+    
+    --lossless
+    variable v_lossless_start :integer := 0;
+    variable v_lossless_end :integer := 0;
+    variable v_qrs_samples : output_lssarray;
+     variable run_count: integer := 0;
+    
     
     begin
     if rising_edge(Clock) then
@@ -306,13 +385,26 @@ begin
                 -- Process current data (always valid after READY)
                 --v_current := signed(douta_1);
                 
+                -- DEBUG: inject spike
+
+                if read_addr = 100 then
+                    vsample_input := to_signed(1000,16);
+                    if vsample_input = to_signed(1000,16) then
+                        report "INPUT at read_addr = "  & integer'image(to_integer(read_addr)) ;
+                    end if;
+                else
+                    vsample_input := (others => '0');
+                end if;
                 -- smooth the signal and remove noise 
-                stored_values := bandPass(signed(douta_1),vlow_pass, vhigh_pass);
+                --stored_values := bandPass(signed(douta_1),vlow_pass, vhigh_pass);
+                stored_values := bandPass(vsample_input, vlow_pass, vhigh_pass);
                 vsample := stored_values(0);
                 vlow_pass := stored_values(1);
                 vhigh_pass := stored_values(2);
                 
-                
+                if vsample = to_signed(1000,16) then 
+                    report "AFTER BANDPASS at read_addr = " &  integer'image(to_integer(read_addr)) ;
+                end if;
                 -- tkeo : peak calculation
                 
                 --v_sampleC := resize(vsample, 32) ;
@@ -328,10 +420,19 @@ begin
                 v_idx :=  v_result.idx;
                 v_sum := v_result.sum;
                 
+                
                 --threshold and peak detection
                 v_threshold := v_threshold + shift_right(v_smooth - v_threshold,7);
                 v_peak := '0';
                 
+                if v_smooth >  3 * v_threshold  then
+                    report "SMOOTH PEAK at read_addr = "  & integer'image(to_integer(read_addr)) ;
+                end if;
+                
+                if v_smooth > 0 then
+                    report "TRACKED SAMPLE at read_addr = " & integer'image(to_integer(read_addr)) ;
+                
+                end if;
                 if v_refcount > 0 then
                     v_refcount := v_refcount - 1;
                 elsif v_smooth > 3 * v_threshold then
@@ -342,6 +443,8 @@ begin
                 cycle_count := cycle_count + 1;
                 
                 if v_peak = '1' then
+                    report "PEAK DETECTED at read_addr = " & integer'image(to_integer(read_addr)) 
+                    severity note;
                     state <= QRS;
                     
                 -- compress final non-QRS segment
@@ -363,8 +466,9 @@ begin
                 end if;
                     
          when QRS =>
+         
             E_b <= '0';
-            qrs_idx := cycle_count - 3;  -- check value 
+            qrs_idx := to_integer(read_addr);   -- check value 
             if qrs_idx - v_max_left > 0 then
                 left_start := qrs_idx - v_max_left ;
             else 
@@ -384,6 +488,15 @@ begin
             q_onset:= left_start;
             s_offset := right_end;
             
+            -- losslessComp
+            v_lossless_start := q_onset;
+            v_lossless_end := s_offset;
+            lossless_start_addr <= std_logic_vector(to_unsigned(q_onset ,17)); -- zero indexing
+            lossless_end_addr <= std_logic_vector(to_unsigned(s_offset ,17));
+            n_samples := std_logic_vector(to_unsigned(q_onset - s_offset,17));
+            state <= LOAD_QRS;
+               
+            
             start_addr <= std_logic_vector(to_unsigned(q_onset ,17)); -- zero indexing
             end_addr <= std_logic_vector(to_unsigned(s_offset ,17));
             -- n_samples:= to_integer(start_addr - end_addr);
@@ -398,7 +511,7 @@ begin
                 v_lossy_start := 0;
                 
                 if q_onset > 2 then
-                    v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
+                    v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
                 else
                     v_lossy_end := 0;
                 end if;
@@ -406,23 +519,23 @@ begin
             -- if end -- s detected is less than 256 from , check if there is another r peak last index
             elsif cycle_count >= 131072  + 4 and (s_offset /= 131072 ) then
                 if s_offset > 2 then 
-                    v_lossy_start := s_offset - 2; -- -2 for zero indexing and to avoid final S sample
+                    v_lossy_start := s_offset + 1; -- -2 for zero indexing and to avoid final S sample
                 else
                     v_lossy_start := 0;
                 end if;
-                v_lossy_end := 131072; -- last address
+                v_lossy_end := max_idx; -- last address
                 
                 
             -- if middle send past s index and current q
             else
                 if s_offseto > 2 then
-                    v_lossy_start := s_offseto -2 ;
+                    v_lossy_start := s_offseto + 1 ;
                 else
                     v_lossy_start:= 0;
                 end if;
                 
                 if q_onset > 2 then
-                    v_lossy_end := q_onset - 2; -- -2 for zero indexing and to avoid first Q sample
+                    v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
                 else
                     v_lossy_end:= 0;
                 end if;
@@ -444,6 +557,35 @@ begin
             qrs_count := qrs_count + 1;
             state <= SEG_HWT_START;
             
+            when SEG_PRED_START =>
+                run_count := 0;
+                state <= LOAD_QRS;
+                
+            when LOAD_QRS =>
+                 E_b <= '1';
+                 if run_count < 72 then  -- always 72 samples
+                    addrb_1 <= std_logic_vector(signed(lossless_start_addr)) ;
+                 end if; 
+                 
+                 if run_count < 72 then -- changed to 3
+                    
+                    v_qrs_samples(run_count):= signed(doutb_1);
+                    -- lossy_block_data(acc_count - 2) := to_signed(1000,16);
+                 else 
+                    run_count := 0;
+                    counter_lss <= '1';
+                    state <= PREDICTOR_WAIT; --WA
+                end if;
+                
+                run_count := run_count + 1;
+                
+            when PREDICTOR_WAIT =>
+                 counter_lss <= '0';
+                 if comp_done = '1' then
+                    state <= SEG_HWT_START ;
+                 end if;
+                 
+                 
             when SEG_HWT_START =>
                 full_blocks <= to_integer(unsigned(n_samples(15 downto 8)));
                 remainder <= to_integer(unsigned(n_samples(7 downto 0)));
@@ -483,11 +625,11 @@ begin
                 -- on the last iteration to fill the block set these variables
                 if acc_count >= v_block_size + 4 then  -- changed to 3
                         
-                        report "Pre-HWT: lossy_block_data(37)=" & 
-                               integer'image(to_integer(lossy_block_data(37))) &
-                               " (38)=" & integer'image(to_integer(lossy_block_data(38))) &
-                               " (39)=" & integer'image(to_integer(lossy_block_data(39)))
-                        severity note;
+                        --report "Pre-HWT: lossy_block_data(37)=" & 
+                        --       integer'image(to_integer(lossy_block_data(37))) &
+                        --       " (38)=" & integer'image(to_integer(lossy_block_data(38))) &
+                        --       " (39)=" & integer'image(to_integer(lossy_block_data(39)))
+                        --severity note;
                         if v_block_count = v_full_blocks then
                             is_partial <= '1';
                         else

@@ -26,6 +26,10 @@ package types_pkg is
 
     type output_array is array (0 to 1023) of unsigned(15 downto 0);
     
+    type output_larray is array (0 to 71) of unsigned(15 downto 0);
+    
+    type output_lssarray is array (0 to 71) of signed(15 downto 0);
+    
     type array9 is array (0 to 511) of signed(32 downto 0);
     
     type valStore is array (0 to 2) of signed(15 downto 0);
