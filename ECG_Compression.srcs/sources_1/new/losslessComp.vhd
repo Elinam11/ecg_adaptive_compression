@@ -22,10 +22,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use work.types_pkg.all;
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
-
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
 --library UNISIM;
@@ -34,13 +31,14 @@ use IEEE.NUMERIC_STD.ALL;
 entity losslessComp is
   Port ( Counter: in std_logic;
          Clock: in std_logic; 
-         raw_samples : in output_lssarray;
+         segment_count : in integer;
+         raw_samples : in samples_array;
          K_ready: out std_logic; 
          K: out integer range 0  to 15;
          total_bits : out integer; -- gc
          samples_done : out integer;
          compression_done: out std_logic;
-         encoded_array: out output_array;
+         encoded_array: out output_larray;
          encoded_array_valid: out std_logic --gc
          );
 end losslessComp;
@@ -229,7 +227,8 @@ begin
         variable encoded_val : unsigned(15 downto 0);
         variable encoded_array_var : output_larray := (others => (others => '0'));
         variable product_temp : unsigned (41 downto 0); 
-        variable qrs_samples : output_lssarray := (others => (others => '0'));
+        variable qrs_samples : samples_array := (others => (others => '0'));
+        VARIABLE reported : std_logic := '0';
         
         begin
         
@@ -256,6 +255,7 @@ begin
                      sample_index := 0;  -- RESET
                      for i in 0 to 71 loop
                         encoded_array_var(i) := (others => '0');
+                        encoded_array(i) <= (others => '0');
                      end loop;
                      encoded_array_valid <= '0';
                      
@@ -265,20 +265,24 @@ begin
                      end if;
                 
                 when READY =>
-                    E <= '1';
-                    E_b <= '0';
-                    web_1 <= "0";
-                    addra_1 <= std_logic_vector(read_addr);
-                    read_addr := read_addr + 1;
+                    --E <= '1';
+                    --E_b <= '0';
+                    --web_1 <= "0";
+                    --addra_1 <= std_logic_vector(read_addr);
+                    --read_addr := read_addr + 1;
                     cycle_count := cycle_count + 1;
                     
-                    for i in 0 to 255 loop
+                    if cycle_count = 1 then
+                    for i in 0 to 71 loop
                     qrs_samples(i) := raw_samples(i);
                     end loop;
+                    cycle_count := 0 ;
+                    state <= COMPUTE;
+                    end if;
                     
                     -- Just fill BRAM pipeline (2 cycles)
                     
-                    state <= COMPUTE;
+                    
                     
 
             when COMPUTE =>
@@ -298,6 +302,10 @@ begin
                 if write_count < 2 then
                     v_M_n_pos := pos_value(resize(v_current, 17));
                     temp_buffer(to_integer(write_count)) <= std_logic_vector(v_current);
+                    report "RAW_SAMPLE[" & integer'image(to_integer(write_count)) & 
+                   "]=" & integer'image(to_integer(v_current)) &
+                   " pos_value=" & integer'image(to_integer(v_M_n_pos)) severity note;
+                    
                     
                     report "=== CHECK ===" severity note;
                     report "ERROR1: " & integer'image(to_integer(v_M_n_pos)) severity note;
@@ -309,13 +317,17 @@ begin
                 v_M_n := resize(v_current, 17) - resize(v_predictedO, 17);
                 v_M_n_pos := pos_value(v_M_n);
                 temp_buffer(0) <= temp_buffer(1);
-                temp_buffer(1) <= std_logic_vector(v_current);
+                temp_buffer(1)<= std_logic_vector(v_current);
                     
                     
                 end if;
                 
                 M_n_errors(to_integer(write_count)):= v_M_n_pos;
                 
+                -- in COMPUTE state, after calculating v_M_n_pos
+                report "SEG_MN[" & integer'image(segment_count) &
+                       "][" & integer'image(to_integer(write_count)) & "]=" &
+                       integer'image(to_integer(v_M_n_pos)) severity note;
                 
                 sum_abs_errors := sum_abs_errors + v_M_n_pos;
                 write_count := write_count + 1;
@@ -398,12 +410,24 @@ begin
                 encode_count := encode_count + 1;
                     
                   when DONE =>
-                    
+                    encoded_array <= encoded_array_var;
                     E_b <= '0';
                     web_1 <= "0";
                     comp_done <= '1';
                     
+                    -- print all encoded values to transcript
+                    if reported = '0' then      -- only report once
+                        for i in 0 to 71 loop
+                            report "SEG_ENCODED[" & integer'image(segment_count) &
+                                   "][" & integer'image(i) & "]=" &
+                                   integer'image(to_integer(encoded_array_var(i))) severity note;
+                        end loop;
+                        report "SEG_K[" & integer'image(segment_count) & "]=" &
+                               integer'image(K_reg) severity note;
+                        reported := '1';
+                    end if;
                     if Counter = '0' then
+                        reported := '0';
                         state <= IDLE;
                     end if;
          end case;

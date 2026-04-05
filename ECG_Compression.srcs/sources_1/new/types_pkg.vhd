@@ -28,7 +28,7 @@ package types_pkg is
     
     type output_larray is array (0 to 71) of unsigned(15 downto 0);
     
-    type output_lssarray is array (0 to 71) of signed(15 downto 0);
+    type samples_array is array (0 to 71) of signed(15 downto 0);
     
     type array9 is array (0 to 511) of signed(32 downto 0);
     
@@ -36,13 +36,13 @@ package types_pkg is
     
     type dataStore is array (0 to 255) of signed(15 downto 0);
     
-    type halfDataStore is array (0 to 127) of signed(15 downto 0);
+    type halfdataStore is array (0 to 127) of signed(15 downto 0);
     
     type maBuffer is array (0 to 179) of signed(31 downto 0);
     
     type array9a is array (0 to 511) of signed(15 downto 0);
     
-     type array10 is array (0 to 1023) of signed(15 downto 0);
+    type array10 is array (0 to 1023) of signed(15 downto 0);
 
 end package;
 

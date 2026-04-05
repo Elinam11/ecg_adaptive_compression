@@ -72,7 +72,8 @@ COMPONENT bram_ecg IS
     component losslessComp is
     Port ( Counter: in std_logic ;
          Clock: in std_logic; 
-         raw_samples : in output_larray;
+         raw_samples : in samples_array;
+         segment_count : in integer;
          K_ready: out std_logic; 
          K: out integer range 0  to 15;
          total_bits : out integer; -- gc
@@ -174,8 +175,9 @@ begin
     signal addrb_1: STD_LOGIC_VECTOR (16 downto 0):=(others => '0');
     signal  E_b: std_logic:= '0';
     
+    signal end_of_file : std_logic := '0' ;
     --lossless comp
-    signal qrs_samples : output_larray;
+    signal qrs_samples : samples_array;
     signal counter_lss : std_logic := '0' ;
     signal encoded_lss_valid : std_logic := '0' ;
     signal comp_done : std_logic := '0' ;
@@ -184,6 +186,7 @@ begin
     signal ready_k : std_logic := '0' ;
     signal k_estm : integer := 0;
     signal encoded_lss: output_larray;
+    signal seg_count : integer := 0;
     
     -- hwt compression
     signal n_real : integer := 0 ;
@@ -231,6 +234,7 @@ begin
     lossless_compressor : losslessComp port map ( Counter => counter_lss,
                                      Clock => Clock,
                                      raw_samples  => qrs_samples,
+                                     segment_count => seg_count,
                                      K_ready => ready_k,
                                      K => k_estm,
                                      total_bits => lossless_bits,
@@ -297,7 +301,7 @@ begin
     --lossless
     variable v_lossless_start :integer := 0;
     variable v_lossless_end :integer := 0;
-    variable v_qrs_samples : output_lssarray;
+    variable v_qrs_samples : samples_array;
      variable run_count: integer := 0;
     
     
@@ -353,6 +357,15 @@ begin
                      lossy_block <= (others =>(others => '0'));
                      lossy_block_data := (others =>(others => '0'));
                      
+                     --predictor
+                     seg_count <= 0;
+                     end_of_file <= '0';
+                     
+                     -- qrs
+                     q_onset := 0;
+                    s_offset := 0;
+                    q_onseto := 0;
+                    s_offseto := 0;
                      
                      if start = '1' then  
                         read_addr:= (others => '0');
@@ -374,12 +387,14 @@ begin
 
             when COMPUTE =>
                 --state <= QRS;  -- delete
-                if read_addr <= 131072 then
+                if read_addr >= 131072 then
+                    end_of_file <= '1';
+                     E <= '0';
+                    
+                else
                     E <= '1';
                     addra_1 <= std_logic_vector(read_addr);
                     read_addr := read_addr + 1;
-                else
-                    E <= '0';
                 end if;
                 
                 -- Process current data (always valid after READY)
@@ -387,17 +402,17 @@ begin
                 
                 -- DEBUG: inject spike
 
-                if read_addr = 100 then
-                    vsample_input := to_signed(1000,16);
-                    if vsample_input = to_signed(1000,16) then
-                        report "INPUT at read_addr = "  & integer'image(to_integer(read_addr)) ;
-                    end if;
-                else
-                    vsample_input := (others => '0');
-                end if;
+                --if read_addr = 100 then
+                    --vsample_input := to_signed(1000,16);
+                    --if vsample_input = to_signed(1000,16) then
+                    --    report "INPUT at read_addr = "  & integer'image(to_integer(read_addr)) ;
+                    --end if;
+                --else
+                  --  vsample_input := (others => '0');
+                --end if;
                 -- smooth the signal and remove noise 
-                --stored_values := bandPass(signed(douta_1),vlow_pass, vhigh_pass);
-                stored_values := bandPass(vsample_input, vlow_pass, vhigh_pass);
+                stored_values := bandPass(signed(douta_1),vlow_pass, vhigh_pass);
+                --stored_values := bandPass(vsample_input, vlow_pass, vhigh_pass);
                 vsample := stored_values(0);
                 vlow_pass := stored_values(1);
                 vhigh_pass := stored_values(2);
@@ -448,7 +463,7 @@ begin
                     state <= QRS;
                     
                 -- compress final non-QRS segment
-                elsif cycle_count >= 131072 + 4 then
+                elsif end_of_file ='1' then
                     
                     v_lossy_start := s_offset - 2; -- -2 for zero indexing and to avoid final S sample
                     v_lossy_end := 131072; -- last address
@@ -466,8 +481,17 @@ begin
                 end if;
                     
          when QRS =>
-         
+         report "VHDL_QRS[" & integer'image(seg_count) & "]" &
+           " q=" & integer'image(q_onset) &
+           " r=" & integer'image(qrs_idx) &
+           " s=" & integer'image(s_offset) &
+           " first_sample=" & integer'image(to_integer(
+               signed(doutb_1))) severity note;
+               
+           
+               
             E_b <= '0';
+            
             qrs_idx := to_integer(read_addr);   -- check value 
             if qrs_idx - v_max_left > 0 then
                 left_start := qrs_idx - v_max_left ;
@@ -493,8 +517,11 @@ begin
             v_lossless_end := s_offset;
             lossless_start_addr <= std_logic_vector(to_unsigned(q_onset ,17)); -- zero indexing
             lossless_end_addr <= std_logic_vector(to_unsigned(s_offset ,17));
-            n_samples := std_logic_vector(to_unsigned(q_onset - s_offset,17));
-            state <= LOAD_QRS;
+            n_samples := std_logic_vector(to_unsigned(s_offset - q_onset,17));
+            
+            qrs_count := qrs_count + 1;
+            seg_count <= seg_count + 1;
+            state <= SEG_PRED_START;
                
             
             start_addr <= std_logic_vector(to_unsigned(q_onset ,17)); -- zero indexing
@@ -506,87 +533,96 @@ begin
             
             -- send non QRS TO HWT 
             
-            -- if begining send first sample to Q to this state and not q onset is not addr o
-            if qrs_count = 0 then
-                v_lossy_start := 0;
-                
-                if q_onset > 2 then
-                    v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
-                else
-                    v_lossy_end := 0;
-                end if;
             
-            -- if end -- s detected is less than 256 from , check if there is another r peak last index
-            elsif cycle_count >= 131072  + 4 and (s_offset /= 131072 ) then
-                if s_offset > 2 then 
-                    v_lossy_start := s_offset + 1; -- -2 for zero indexing and to avoid final S sample
-                else
-                    v_lossy_start := 0;
-                end if;
-                v_lossy_end := max_idx; -- last address
-                
-                
-            -- if middle send past s index and current q
-            else
-                if s_offseto > 2 then
-                    v_lossy_start := s_offseto + 1 ;
-                else
-                    v_lossy_start:= 0;
-                end if;
-                
-                if q_onset > 2 then
-                    v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
-                else
-                    v_lossy_end:= 0;
-                end if;
-            end if;
-            
-            lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17)); -- -2 for zero indexing and to avoid final S sample
-            lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
-            
-            --v_lossy_start := 0;
-             --v_lossy_end   := 37;
-             --lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17));
-             --lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
-            -- guard from negatives
-            if v_lossy_end > v_lossy_start then
-                n_samples := std_logic_vector(to_unsigned(v_lossy_end - v_lossy_start,17));
-            else
-                n_samples := (others => '0');
-            end if;
-            qrs_count := qrs_count + 1;
-            state <= SEG_HWT_START;
             
             when SEG_PRED_START =>
                 run_count := 0;
                 state <= LOAD_QRS;
                 
             when LOAD_QRS =>
+                 E <= '0';
                  E_b <= '1';
                  if run_count < 72 then  -- always 72 samples
-                    addrb_1 <= std_logic_vector(signed(lossless_start_addr)) ;
+                    addrb_1 <= std_logic_vector(signed(lossless_start_addr) + to_signed(run_count, 17)) ;
                  end if; 
                  
-                 if run_count < 72 then -- changed to 3
+                 if run_count >= 3 and run_count < 75 then -- changed to 3
                     
-                    v_qrs_samples(run_count):= signed(doutb_1);
+                    qrs_samples(run_count - 3)<= signed(doutb_1);
                     -- lossy_block_data(acc_count - 2) := to_signed(1000,16);
-                 else 
-                    run_count := 0;
-                    counter_lss <= '1';
-                    state <= PREDICTOR_WAIT; --WA
-                end if;
-                
-                run_count := run_count + 1;
+                 end if;
+                  if run_count >= 75 then
+                    --for i in 0 to 71 loop
+                    --    qrs_samples(i) <= v_qrs_samples(i);
+                    --end loop;
+
+                        run_count := 0;
+                        counter_lss <= '1';
+                        state <= PREDICTOR_WAIT;
+                    else
+                        run_count := run_count + 1;
+                    end if;
                 
             when PREDICTOR_WAIT =>
-                 counter_lss <= '0';
+                 
                  if comp_done = '1' then
+                    counter_lss <= '0';
                     state <= SEG_HWT_START ;
                  end if;
                  
                  
             when SEG_HWT_START =>
+                -- if begining send first sample to Q to this state and not q onset is not addr o
+                if qrs_count = 1 then 
+                    v_lossy_start := 0;
+                    
+                    if q_onset > 2 then
+                        v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
+                    else
+                        v_lossy_end := 0;
+                    end if;
+                
+                -- if end -- s detected is less than 256 from , check if there is another r peak last index
+                elsif end_of_file ='1' and (s_offset /= 131072 ) then
+                    if s_offset > 2 then 
+                        v_lossy_start := s_offset + 1; -- -2 for zero indexing and to avoid final S sample
+                    else
+                        v_lossy_start := 0;
+                    end if;
+                    v_lossy_end := max_idx; -- last address
+                    
+                    
+                -- if middle send past s index and current q
+                else
+                    if s_offseto > 2 then
+                        v_lossy_start := s_offseto + 1 ;
+                    else
+                        v_lossy_start:= 0;
+                    end if;
+                    
+                    if q_onset > 2 then
+                        v_lossy_end := q_onset - 1; -- -2 for zero indexing and to avoid first Q sample
+                    else
+                        v_lossy_end:= 0;
+                    end if;
+                end if;
+                
+                lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17)); -- -2 for zero indexing and to avoid final S sample
+                lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
+                
+                --v_lossy_start := 0;
+                 --v_lossy_end   := 37;
+                 --lossy_start_addr <= std_logic_vector(to_unsigned(v_lossy_start,17));
+                 --lossy_end_addr <= std_logic_vector(to_unsigned(v_lossy_end,17));
+                -- guard from negatives
+                if v_lossy_end > v_lossy_start then
+                    n_samples := std_logic_vector(to_unsigned(v_lossy_end - v_lossy_start,17));
+                else
+                    n_samples := (others => '0');
+                end if;
+                
+            
+            
                 full_blocks <= to_integer(unsigned(n_samples(15 downto 8)));
                 remainder <= to_integer(unsigned(n_samples(7 downto 0)));
                 block_count <= 0;
@@ -684,7 +720,7 @@ begin
                      block_count <= full_blocks;
                     state <= LOAD_BLOCK;
                 else
-                    if cycle_count >= 131072  + 4 then
+                    if end_of_file = '1' then
                         state <= DONE;
                     else 
                         state <= COMPUTE;

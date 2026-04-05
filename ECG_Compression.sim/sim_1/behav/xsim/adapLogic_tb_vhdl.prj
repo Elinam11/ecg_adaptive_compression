@@ -1,7 +1,7 @@
 # compile vhdl design source files
 vhdl xil_defaultlib  \
-"../../../../ECG_Compression.srcs/sources_1/new/losslessComp.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/types_pkg.vhd" \
+"../../../../ECG_Compression.srcs/sources_1/new/losslessComp.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/hwt.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/fullAdder.vhd" \
 "../../../../ECG_Compression.srcs/sources_1/new/halfAdder.vhd" \
