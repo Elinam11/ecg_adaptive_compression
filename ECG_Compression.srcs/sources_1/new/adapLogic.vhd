@@ -252,6 +252,7 @@ begin
     variable vhigh_pass : signed(15 downto 0);
     variable cycle_count : integer;
     variable read_addr: unsigned(16 downto 0)  := (others => '0');
+    variable latched_peak_addr : unsigned(16 downto 0)  := (others => '0');
     
     --tkeo
     variable v_sampleC : signed(15 downto 0);
@@ -369,6 +370,7 @@ begin
                      
                      if start = '1' then  
                         read_addr:= (others => '0');
+                        latched_peak_addr := (others => '0');
                         state <= READY;
                      end if;
                 
@@ -458,6 +460,8 @@ begin
                 cycle_count := cycle_count + 1;
                 
                 if v_peak = '1' then
+                    
+                    latched_peak_addr := read_addr;
                     report "PEAK DETECTED at read_addr = " & integer'image(to_integer(read_addr)) 
                     severity note;
                     state <= QRS;
@@ -492,7 +496,8 @@ begin
                
             E_b <= '0';
             
-            qrs_idx := to_integer(read_addr);   -- check value 
+            --qrs_idx := to_integer(read_addr);   -- check value
+            qrs_idx :=  to_integer(latched_peak_addr); 
             if qrs_idx - v_max_left > 0 then
                 left_start := qrs_idx - v_max_left ;
             else 
@@ -521,6 +526,8 @@ begin
             
             qrs_count := qrs_count + 1;
             seg_count <= seg_count + 1;
+            
+            
             state <= SEG_PRED_START;
                
             
@@ -643,6 +650,10 @@ begin
                     v_block_size := v_remainder;
                 end if;
                 
+                report "SEG_RANGE," &
+                   integer'image(to_integer(unsigned(lossy_start_addr))) & "," &
+                   integer'image(to_integer(unsigned(lossy_end_addr)))
+            severity note;
                 -- make sure it is within non qrs and don't waste memory access
                 if acc_count < (v_lossy_end - v_lossy_start) then -- to_integer(unsigned(n_samples)) 
                     addrb_1 <= std_logic_vector(signed(lossy_start_addr) + to_signed(v_block_count*256 + acc_count,17));

@@ -135,6 +135,17 @@ end function;
         end case;
         return encoded_val;
     end function;
+
+function rice_bits (Z: unsigned; k: integer) return integer is
+    variable Q : integer;
+begin
+    if k = 0 then
+        Q := to_integer(Z);
+    else
+        Q := to_integer(shift_right(Z, k));
+    end if;
+    return Q + 1 + k;
+end function;
                 
 -- for k estimation average
 constant RECIP_72 : unsigned  (15 downto 0) := x"038E";  -- 910 in hex
@@ -372,12 +383,12 @@ begin
                 vgc_M_n := M_n_errors(encode_count);  
                 pa_K := K_reg; 
                 -- output error
-                encoded_val := encode_gc(vgc_M_n, K_reg);
+                --encoded_val := encode_gc(vgc_M_n, K_reg);
                 
                 --encodedE <= encoded_val;
                 
                 if sample_index < 72 then
-                encoded_array_var(sample_index) := encoded_val;
+                encoded_array_var(sample_index) := vgc_M_n; --encoded_val;
                 end if;
                 
                 -- DEBUG: Report what you're encoding
@@ -390,7 +401,7 @@ begin
                 end if;
     
                 -- compression measurement
-                bits_used := to_integer(unsigned(Q)) + 1 + pa_K;
+                bits_used := rice_bits(vgc_M_n, K_reg); -- to_integer(unsigned(Q)) + 1 + pa_K;
                 total_bits_reg <= total_bits_reg + bits_used;
                 samples_done_reg <= samples_done_reg + 1;
                 sample_index := sample_index + 1;

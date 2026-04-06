@@ -35,6 +35,24 @@ entity hwt is
 end hwt;
 
 architecture Behavioral of hwt is
+    function coeff_bits(coeff : signed(15 downto 0)) return integer is
+  variable mag  : unsigned(14 downto 0);
+  variable bits : integer := 1;   -- 1 for sign
+begin
+  if coeff = 0 then return 0; end if;
+  if coeff < 0 then
+    mag := unsigned((not coeff(14 downto 0)) + 1);
+  else
+    mag := unsigned(coeff(14 downto 0));
+  end if;
+  for i in 14 downto 0 loop
+    if mag(i) = '1' then
+      bits := bits + i + 1;
+      return bits;
+    end if;
+  end loop;
+  return 1;
+end function;
 
     function nonzero(coeff: signed) return integer is
     variable num_bits: integer:= 0; 
@@ -359,7 +377,8 @@ end if;
                 probe_thresh_kept <= '0';
             else
                 coefficient := abs(buffer_arr(process_idx));
-                total_bits_used := nonzero(coefficient) + total_bits_used;
+                --nonzero{coefficien}
+                total_bits_used := coeff_bits(buffer_arr(process_idx)) + total_bits_used;
                 probe_thresh_idx   <= process_idx;
                 probe_thresh_coeff <= coefficient;
                 if coefficient <= thresh then
